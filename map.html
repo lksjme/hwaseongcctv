@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>화성특례시 방범CCTV 관리</title>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d6ac13dbec76f46fd8d06ff83c394a5f&libraries=services"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { margin:0; padding:0; height:100vh; display:flex; flex-direction:column; font-family: 'Malgun Gothic', sans-serif; overflow: hidden; }
+        /* 기존 header 설정을 아래 내용으로 교체하거나 덮어쓰세요 */
+header { 
+    height:60px; 
+    background:#1a5276; 
+    color:white; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    font-size:22px; 
+    font-weight:700; 
+    position:relative; 
+    z-index: 1000; 
+    flex-shrink: 0; 
+}
+
+/* 새로 추가되는 홈 버튼 디자인 */
+.header-left { 
+    position:absolute; 
+    left:20px; 
+    display:flex; 
+    align-items:center; 
+}
+
+.home-btn { 
+    background: rgba(255,255,255,0.15); 
+    border: 1px solid rgba(255,255,255,0.4); 
+    color: white; 
+    padding: 6px 14px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    text-decoration: none; 
+    font-weight: normal; 
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.home-btn:hover { 
+    background: rgba(255,255,255,0.3); 
+    border-color: white;
+}
+        
+        #main-container { display:flex; flex:1; position:relative; overflow:hidden; width: 100%; }
+        
+        /* 사이드바 */
+        #sidebar { 
+            width: 300px; background: #f4f6f8; border-right: 1px solid #ccc; 
+            display: flex; flex-direction: column; z-index: 500; flex-shrink: 0; 
+            transition: all 0.3s ease; position: relative;
+        }
+        #sidebar.collapsed { margin-left: -300px; }
+        #sidebarToggle {
+            position: absolute; right: -30px; top: 70px; width: 30px; height: 60px; 
+            background: #1a5276; color: white; border: none; cursor: pointer; 
+            border-radius: 0 5px 5px 0; z-index: 1001; font-size: 18px;
+        }
+
+        /* 대시보드 및 준공 필터 버튼 */
+        .dashboard { padding: 10px; background: #fff; border-bottom: 2px solid #1a5276; flex-shrink: 0; }
+        .filter-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        .filter-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; background: #fff; }
+        .filter-btn.active-all { background: #34495e; color: white; border-color: #34495e; }
+        .filter-btn.active-done { background: #1a73e8; color: white; border-color: #1a73e8; }
+        .filter-btn.active-yet { background: #e74c3c; color: white; border-color: #e74c3c; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 5px; }
+        .stat-card {
+    /* 기존 스타일 유지하면서 폰트 설정 추가 */
+    background: #f8f9fa; 
+    padding: 10px 5px; 
+    border-radius: 4px; 
+    text-align: center; 
+    border: 1px solid #ddd;
+
+    /* 필터 버튼(.filter-btn)과 동일한 폰트 스타일 적용 */
+    font-size: 13px !important;    /* 버튼 글자 크기와 통일 */
+    font-weight: bold !important;  /* 버튼처럼 두껍게 */
+    color: #333 !important;        /* 진한 회색/검정 계열 */
+}
+        .stat-card b { font-size: 16px; color: #1a5276; display: block; margin-top: 3px; }
+        
+        /* 메뉴 */
+        .menu-item { border-bottom: 1px solid #ddd; background: white; }
+        .menu-btn { width: 100%; padding: 12px; text-align: left; background: #fff; border: none; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+        .menu-content { display: none; padding: 10px; background: #fff; }
+        .menu-content.show { display: block; }
+        .search-box { display: flex; gap: 5px; margin-bottom: 8px; }
+        .search-box input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .search-box button { padding: 0 10px; background: #1a5276; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .results-container { max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
+        .list-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; line-height: 1.4; }
+        .list-item:hover { background: #f0f7ff; }
+
+        /* 지도 및 로드뷰 */
+        #view-area { display: flex; flex: 1; position: relative; flex-direction: row; }
+        #map { flex: 1; position: relative; }
+        #roadview-container { flex: 1; height: 100%; position: relative; display: none; border-left: 2px solid #333; }
+        #roadview { width: 100%; height: 100%; }
+
+        /* 버튼류 */
+        .my-location-btn { position:absolute; bottom:20px; right:20px; z-index:100; background:white; border:2px solid #1a5276; border-radius:50%; width:45px; height:45px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .rv-toggle { position:absolute; top:10px; right:120px; z-index:100; }
+        .top-right { position:absolute; top:10px; right:10px; z-index:100; display:flex; flex-direction:column; background: white; border-radius:4px; border:1px solid #919191; }
+        .custom-btn { background:white; border:1px solid #919191; cursor:pointer; padding:8px 12px; font-size:12px; border-radius: 4px; white-space: nowrap; }
+        .custom-btn.active { background:#e8f0fe; color:#1a73e8; border-color:#1a73e8; font-weight:bold; }
+        .close-btn { position:absolute; top:10px; right:10px; z-index:200; background:rgba(255,0,0,0.8); color:white; padding:8px 15px; cursor:pointer; border:none; border-radius:4px; font-weight:bold; }
+
+        /* 인포윈도우 */
+/* 1. 카카오 기본 틀의 내부 여백을 0으로 강제 초기화 */
+.kakao-maps-info-window, 
+.kakao-maps-info-window > div:nth-child(1) > div:nth-child(1) {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    height: auto !important;
+    display: flex !important; /* 내부 요소를 중앙으로 모으기 위함 */
+    justify-content: center;
+}
+
+/* 2. 우리 디자인 박스 (.info-wrap) 위치 재설정 */
+.info-wrap {
+    width: 400px !important; 
+    background: #ffffff;
+    border: 1px solid #1a5276;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    
+    /* [핵심 수정] 위로 튀어나오는 현상 방지 */
+    position: relative;
+    top: 0 !important;      /* 위로 밀려나지 않게 0으로 고정 */
+    margin: 0 !important;    /* 혹시 모를 마진 간섭 차단 */
+    
+    /* 만약 전체가 마커와 너무 겹치면 여기서 조절하세요 */
+    /* 아래 값이 양수면 내려가고, 음수면 올라갑니다. */
+    transform: translateY(0px); 
+}
+
+/* 3. 말꼬리 영역을 아예 보이지 않게 하여 '기준점'에서 제외 */
+.kakao-maps-info-window > div:nth-child(1) > div:nth-child(2) {
+    display: none !important;
+    height: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* 1. 헤더: 내부 요소들을 가로(수평)로 배치 */
+.info-header {
+    background: #1a5276 !important;
+    padding: 10px 15px !important;
+    
+    display: flex !important;       /* ★ 가로 배치를 위한 필수 설정 */
+    flex-direction: row !important; /* 가로 방향 */
+    justify-content: space-between; /* 텍스트는 왼쪽, 버튼은 오른쪽 끝 */
+    align-items: center !important; /* 세로축 중앙 정렬 */
+    
+    border-radius: 0 !important;
+}
+
+/* 2. 텍스트 그룹: 관리번호와 제목만 세로로 쌓기 */
+.header-text-group {
+    display: flex !important;
+    flex-direction: column !important; /* 관리번호와 제목을 위아래로 */
+    text-align: left;
+    flex: 1; /* 남는 공간을 다 차지해서 버튼을 오른쪽으로 밀어냄 */
+}
+
+/* 3. 닫기 버튼: 위치 고정 */
+.info-close-btn {
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 24px !important;
+    font-weight: 300 !important;
+    cursor: pointer !important;
+    line-height: 1 !important;
+    padding: 0 0 0 10px !important; /* 왼쪽 여백으로 텍스트와 간격 벌림 */
+    margin: 0 !important;
+    outline: none;
+}
+.info-mgmt {
+    font-size: 11px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    margin-bottom: 2px !important;
+}
+
+.info-title {
+    font-size: 17px !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+    line-height: 1.2;
+}
+/* 5. 본문 및 푸터: 와이드 폭에 맞춘 여백 조정 */
+.info-scroll-box {
+    padding: 15px 20px !important;
+    background: #ffffff;
+}
+
+.info-body {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    color: #333;
+}
+
+.info-footer {
+    padding: 10px !important;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+}
+
+.navi-btn {
+    display: block;
+    width: 100%;
+    height: 40px !important;
+    line-height: 40px !important;
+    background: #2575fc !important;
+    color: #ffffff !important;
+    text-align: center;
+    text-decoration: none;
+    font-size: 14px !important;
+    font-weight: bold;
+    border-radius: 0 !important; /* 버튼까지 직각으로 통일 */
+}
+
+       @media screen and (max-width: 1080px) {
+    /* 전체 영역을 세로로 강제 정렬 */
+    #view-area { 
+        flex-direction: column !important; 
+        height: 100% !important;
+    }
+
+    /* 로드뷰가 열렸을 때 상단 50% 차지 */
+    #roadview-container { 
+        display: none; /* 기본은 숨김 */
+        width: 100% !important;
+        height: 50% !important; 
+        order: 1; /* 위쪽 배치 */
+        border-left: none !important;
+        border-bottom: 3px solid #333;
+    }
+
+    /* 지도가 하단 50% 차지 (로드뷰가 열렸을 때 기준) */
+    #map { 
+        width: 100% !important;
+        flex: 1 !important; /* 남은 공간을 모두 채움 */
+        order: 2; /* 아래쪽 배치 */
+    }
+
+    /* 사이드바가 지도를 가리지 않게 조정 */
+    #sidebar { 
+        position: absolute; 
+        height: 100%; 
+        z-index: 1002;
+    }
+}
+
+       #regionList {
+    max-height: 400px; /* 상황에 맞게 조절 (버튼이 보일 정도의 높이) */
+    overflow-y: auto;  /* 내용이 길어지면 내부 스크롤 생성 */
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    background: #fff;
+}
+
+/* 2. 구 헤더 스타일 (필터 버튼 폰트와 동일) */
+.gu-header-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 10px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    font-size: 13px !important;
+    font-weight: bold !important;
+    color: #1a5276;
+}
+
+.gu-header-row:hover { background: #f8f9fa; }
+
+/* 3. 동 리스트 컨테이너 (기본 숨김) */
+.dong-container {
+    display: none; 
+    background: #fcfcfc;
+}
+
+/* 4. 활성화(active) 되었을 때만 동 리스트 표시 */
+.gu-group.active .dong-container {
+    display: block;
+}
+
+.gu-group.active .gu-header-row {
+    background: #f0f7ff;
+    border-bottom: 1px solid #d0e3f5;
+}
+
+/* 동 아이템 스타일 */
+.dong-item {
+    padding: 8px 20px;
+    font-size: 12px;
+    color: #666;
+    border-bottom: 1px dashed #f0f0f0;
+    cursor: pointer;
+}
+
+.dong-item:hover { color: #1a5276; font-weight: bold; }
+
+        .reset-btn { width: 100%; margin-top: 10px; padding: 10px; background: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* --- 헤더 우측 버튼 스타일 (홈 버튼과 통일) --- */
+.header-right { 
+    position: absolute; 
+    right: 20px; 
+    display: flex; 
+    align-items: center; 
+}
+
+#editBtn { 
+    background: rgba(255, 255, 255, 0.15); 
+    border: 1px solid rgba(255, 255, 255, 0.4); 
+    color: white; 
+    padding: 6px 14px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+#editBtn:hover { background: rgba(255, 255, 255, 0.3); border-color: white; }
+#editBtn.active-mode { background: #e74c3c !important; border-color: #ff9999; font-weight: bold; }
+
+/* --- 지도 커스텀 컨트롤 디자인 --- */
+/* 지도/스카이뷰 전환 */
+.top-right-controls { 
+    position: absolute; top: 15px; right: 15px; z-index: 100; 
+    display: flex; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px);
+    border-radius: 8px; border: 1px solid #919191; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+.map-type-btn { 
+    padding: 8px 15px; font-size: 13px; font-weight: bold; cursor: pointer; border: none; background: none; 
+}
+.map-type-btn.active { background: #1a5276; color: white; }
+
+/* 확대/축소/로드뷰 세로 컨트롤 */
+.zoom-controls { 
+    position: absolute; top: 65px; right: 15px; z-index: 100; 
+    width: 40px; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px);
+    border-radius: 8px; border: 1px solid #919191; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column;
+}
+.zoom-btn { 
+    height: 40px; display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; font-size: 18px; font-weight: bold; border-bottom: 1px solid #eee;
+}
+.zoom-btn:last-child { border: none; }
+.zoom-btn:hover { background: #f0f0f0; color: #1a5276; }
+.zoom-btn.active { background: #ffce00; border-radius: 8px; } /* 로드뷰 활성 시 노란색 */
+/* --- 로드뷰 스타일 업그레이드 --- */
+#rvBtn {
+    height: 42px !important; /* 높이를 충분히 확보 */
+    background-color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    /* 맨 위 버튼이므로 상단 곡률을 박스와 맞춤 */
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+#rvBtn svg {
+    display: block;
+    width: 26px;
+    height: 34px;
+    /* [수정] 짤림 방지를 위해 미세하게 아래로 내림 */
+    transform: translateY(2px) !important; 
+}
+/* 로드뷰 활성화 시: 흰색 바탕 없이 전체가 노란색 */
+#rvBtn.active {
+    background-color: #FFCE00 !important;
+}
+
+/* 이미지 위치 미세 조정 (카카오 스프라이트 이미지용) */
+#rvBtn img {
+    display: block;
+    margin-top: 10px !important; /* 이 숫자를 조절해서 아래로 내리세요 */
+    padding: 0;
+}
+
+/* 로드뷰 버튼 활성화 (카카오 노란색) */
+.zoom-controls { 
+    position: absolute; top: 65px; right: 15px; z-index: 100; 
+    width: 40px; 
+    background: rgba(255,255,255,0.9); 
+    backdrop-filter: blur(5px);
+    border-radius: 8px; /* 전체 박스의 둥근 모서리 */
+    border: 1px solid #919191; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex; 
+    flex-direction: column;
+    overflow: hidden; /* [핵심] 내부 버튼들이 이 곡률을 벗어나지 못하게 함 */
+}
+/* 지도 위에서 커서 숨기기 */
+.rv-active-cursor { cursor: none !important; }
+
+.hide-controls {
+    display: none !important;
+}
+
+/* 1. 인포윈도우 외곽 하얀 상자 제거 */
+.kakao-maps-info-window {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 2. 하얀색 배경색을 가진 모든 자식 div 투명화 (핵심) */
+.kakao-maps-info-window div {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 3. 말꼬리(삼각형) 이미지 및 배경 제거 */
+.kakao-maps-info-window > div:nth-child(1) > div:nth-child(1), /* 상단 바디 */
+.kakao-maps-info-window > div:nth-child(1) > div:nth-child(2), /* 말꼬리 부분 */
+.kakao-maps-info-window img[src*="daumcdn.net/localimg/localimages/07/mapjsapi/2x/default_marker.png"] {
+    display: none !important;
+    background: none !important;
+}
+
+/* 4. 내가 만든 커스텀 디자인(.info-wrap)만 보이게 설정 */
+.info-wrap {
+    margin-bottom: 25px; /* 마커와 겹치지 않게 살짝 띄움 */
+    width: 600px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #1a5276;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+/* 통합 모바일 반응형 스타일 (1080px 이하 기기 공통) */
+@media screen and (max-width: 1080px) {
+    /* 1. 헤더 높이 조절 */
+    header {
+        height: 50px;
+        font-size: 16px !important;
+    }
+
+    /* 2. 사이드바 하단 배치 및 너비 고정 */
+    #sidebar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100% !important;
+        height: 40%; 
+        z-index: 2000;
+        border-right: none;
+        border-top: 2px solid #0099ff;
+        transition: height 0.3s ease;
+    }
+
+    #sidebar.collapsed {
+        height: 40px;
+        width: 100% !important;
+        transform: none;
+    }
+
+    #sidebarToggle {
+        top: -30px;
+        right: 10px;
+        width: 50px;
+        height: 30px;
+        transform: rotate(90deg);
+    }
+
+    /* 3. 지도 컨트롤 (버튼 및 위치) */
+    .top-right-controls {
+        top: 15px !important;
+        right: 15px !important;
+        display: flex !important;
+        flex-direction: row !important; /* 가로 나열 */
+        gap: 8px !important;
+        z-index: 1005 !important;
+    }
+
+    /* 버튼 스타일 통일 (글자 안 잘리게 width: auto) */
+    .top-right-controls button {
+        background: #111114 !important;
+        color: #ffffff !important;
+        border: 1px solid #333336 !important;
+        width: auto !important; /* 고정너비 40px 해제 */
+        min-width: 70px !important;
+        height: 38px !important;
+        padding: 0 12px !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        white-space: nowrap !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+    }
+
+    /* [중요] 활성화된 버튼 (파란색 고정) */
+    .top-right-controls button.active {
+        background: #0099ff !important;
+        background-color: #0099ff !important;
+        color: #ffffff !important;
+        border: 1px solid #00b3ff !important;
+        box-shadow: 0 0 15px rgba(0, 153, 255, 0.6) !important;
+    }
+
+    /* 줌 컨트롤 위치 조정 */
+    .zoom-controls {
+        top: 65px !important;
+        right: 15px !important;
+    }
+    
+    .zoom-controls button {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 18px !important;
+    }
+
+    /* 4. 로드뷰 창 크기 조절 */
+    #roadview-container {
+        height: 50% !important;
+    }
+}
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <a href="index.html" class="home-btn">
+            <span>🏠</span> 
+        </a>
+    </div>
+
+    화성특례시 방범CCTV 설치현황
+
+    <div class="header-right">
+        <button id="editBtn" class="custom-btn" onclick="toggleEditMode()">
+            <span>⚙️</span> 
+        </button>
+    </div>
+</header>
+
+<div id="main-container">
+    <div id="sidebar">
+        <button id="sidebarToggle" onclick="toggleSidebar()">◀</button>
+        
+        <div class="dashboard">
+            <div class="filter-group">
+                <button id="btnFilterAll" class="filter-btn active-all" onclick="setCompletionFilter('전체')">전체</button>
+                <button id="btnFilterDone" class="filter-btn" onclick="setCompletionFilter('준공')">준공</button>
+                <button id="btnFilterYet" class="filter-btn" onclick="setCompletionFilter('미준공')">미준공</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">개소<b id="totalPoints">0</b></div>
+                <div class="stat-card">카메라<b id="totalCams">0</b></div>
+            </div>
+            <div class="menu-item">
+                <button class="menu-btn" onclick="toggleMenu('regionMenu')">📊 지역 통계 <span>▼</span></button>
+                <div id="regionMenu" class="menu-content">
+                    <div id="regionList"></div>
+                    <button class="reset-btn" onclick="resetMarkers()">필터 초기화</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-item">
+            <button class="menu-btn" onclick="toggleMenu('addrMenu')">📍 주소 검색 <span>▼</span></button>
+            <div id="addrMenu" class="menu-content">
+                <div class="search-box">
+                    <input type="text" id="addrKeyword" placeholder="주소 입력" onkeypress="if(event.keyCode==13) searchAddr()">
+                    <button onclick="searchAddr()">검색</button>
+                </div>
+                <div id="addrResults" class="results-container"></div>
+            </div>
+        </div>
+
+        <div class="menu-item">
+            <button class="menu-btn active" onclick="toggleMenu('cctvMenu')">🎥 CCTV 검색 <span>▼</span></button>
+            <div id="cctvMenu" class="menu-content show">
+                <div class="search-box">
+                    <input type="text" id="keyword" placeholder="CCTV 이름 검색" onkeypress="if(event.keyCode==13) searchData('name')">
+                    <button onclick="searchData('name')">검색</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="mgmtKeyword" placeholder="관리번호 검색" onkeypress="if(event.keyCode==13) searchData('mgmt')">
+                    <button onclick="searchData('mgmt')">검색</button>
+                </div>
+                <div id="cctvResults" class="results-container"></div>
+            </div>
+        </div>
+    </div>
+
+ <div id="view-area">
+    <div id="map" style="width:100%; height:100%;">
+        <button class="my-location-btn" onclick="getCurrentLocation()">🎯</button>
+        </div>
+
+    <div id="roadview-container">
+        <button class="close-btn" onclick="closeRV()">X 닫기</button>
+        <div id="roadview" style="width:100%; height:100%;"></div>
+    </div>
+</div>
+        
+        <div class="top-right-controls">
+            <button id="btnRoadmap" class="map-type-btn active" onclick="setMap('ROADMAP')">지도</button>
+            <button id="btnSkyview" class="map-type-btn" onclick="setMap('HYBRID')">스카이뷰</button>
+        </div>
+
+        <div class="zoom-controls">
+ <div id="rvBtn" class="zoom-btn" onclick="toggleRVMode()" title="로드뷰" 
+     style="display: flex; align-items: center; justify-content: center; background: #fff; cursor: pointer;">
+    
+  <svg width="26" height="38" viewBox="0 0 36 52" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto;">
+    <ellipse cx="18" cy="48" rx="8" ry="3" fill="black" fill-opacity="0.2"/>
+    <path d="M18 48L11 35H25L18 48Z" fill="#333"/>
+    <path d="M9 35C9 35 7 22 18 22C29 22 27 35 27 35H9Z" fill="#4A89FF" stroke="#333" stroke-width="2"/>
+    <circle cx="18" cy="16" r="14" fill="#FFCE00" stroke="#333" stroke-width="2"/>
+    <circle cx="13" cy="14" r="1.8" fill="#333"/>
+    <circle cx="23" cy="14" r="1.8" fill="#333"/>
+    <path d="M15 20C15 20 16.5 22 18 22C19.5 22 21 20 21 20" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M8 28C6 28 5 32 5 32" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+    <path d="M28 28C30 28 31 32 31 32" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+</svg>
+</div>
+    <div class="zoom-btn" onclick="map.setLevel(map.getLevel()-1)">+</div>
+    <div class="zoom-btn" onclick="map.setLevel(map.getLevel()+1)">-</div>
+</div>
+    </div>
+</div>
+        
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2ZbbUNPznsDff32mQrqA30XQXdjd8iGtTpFOL16h8VymyfLpiLDQjdabyG835JkC2lw/exec'; 
+    
+    // 1. 기본 설정
+    const map = new kakao.maps.Map(document.getElementById('map'), { center: new kakao.maps.LatLng(37.1995, 126.8312), level: 4 });
+    const geocoder = new kakao.maps.services.Geocoder();
+    const rv = new kakao.maps.Roadview(document.getElementById('roadview'));
+    const rvc = new kakao.maps.RoadviewClient();
+    const rvOverlay = new kakao.maps.RoadviewOverlay();
+    const infowindow = new kakao.maps.InfoWindow({
+    zIndex: 10,
+    removable: false,
+   });
+// [추가] 지도를 스카이뷰(하이브리드)로 설정
+map.setMapTypeId(kakao.maps.MapTypeId.HYBRID);
+
+// [추가] 버튼 UI 상태 업데이트 (스카이뷰 버튼 활성화)
+const btnRoad = document.getElementById('btnRoadmap');
+const btnSky = document.getElementById('btnSkyview');
+
+if (btnSky) btnSky.classList.add('active');      // 스카이뷰 버튼 활성화
+if (btnRoad) btnRoad.classList.remove('active'); // 지도 버튼 비활성화
+
+// open 시점에 기본 스타일이 남지 않도록 다시 한번 체크
+function openInfo(marker, content) {
+    infowindow.setContent(content);
+    infowindow.open(map, marker);
+    
+    const infoPanels = document.querySelectorAll('.kakao-maps-info-window');
+infoPanels.forEach(panel => {
+    panel.parentElement.style.background = "none";
+    panel.parentElement.style.border = "none";
+    panel.parentElement.style.boxShadow = "none";
+});
+    // 생성 직후 부모 요소의 배경을 다시 한번 강제로 날림 (보험용)
+    const infoNode = document.querySelectorAll('.kakao-maps-info-window');
+    infoNode.forEach(node => {
+        node.parentElement.style.background = "none";
+        node.parentElement.style.border = "none";
+    });
+}
+    
+    let markers = [], isEditMode = false, currentFilter = '전체', isRvMode = false;
+    let myLocationMarker = null, myLocationCircle = null, searchCircle = null;
+    const rvMarker = new kakao.maps.Marker({ zIndex: 999 });
+
+    // 2. 사이드바 및 메뉴 토글 (복구)
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('collapsed');
+        document.getElementById('sidebarToggle').innerText = sidebar.classList.contains('collapsed') ? "▶" : "◀";
+        setTimeout(() => map.relayout(), 350);
+    }
+
+    function toggleMenu(id) {
+        document.querySelectorAll('.menu-content').forEach(m => {
+            if(m.id !== id) m.classList.remove('show');
+        });
+        document.getElementById(id).classList.toggle('show');
+    }
+
+    // 3. 데이터 로드 및 마커 생성 (인포윈도우 디자인 포함)
+    function loadData() {
+        fetch(SCRIPT_URL).then(res => res.json()).then(data => {
+            markers.forEach(m => m.marker.setMap(null));
+            markers = [];
+            data.slice(1).forEach(row => {
+                const [mgmtId, name, count, net, date, addr, lat, lng, col8, col9, col10, gu, dong, isDone] = row;
+                if(!lat || !lng) return;
+
+                const pos = new kakao.maps.LatLng(lat, lng);
+                const svgCctvPin = `<svg width="40" height="50" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 0C8.95431 0 0 8.95431 0 20C0 31.0457 10 40 20 50C30 40 40 31.0457 40 20C40 8.95431 31.0457 0 20 0Z" fill="#1A73E8"/>
+                    <circle cx="20" cy="20" r="12" fill="white"/>
+                    <path d="M14 17H24C25.1 17 26 17.9 26 19V23C26 24.1 25.1 25 24 25H16L13 28V19C13 17.9 13.9 17 14 17Z" fill="#333"/>
+                    <rect x="25" y="20" width="3" height="4" fill="#333"/>
+                    <circle cx="20" cy="20" r="2.5" fill="#FF0000"><animate attributeName="opacity" values="1;0.2;1" dur="1.2s" repeatCount="indefinite" /></circle>
+                </svg>`;
+
+                const marker = new kakao.maps.Marker({
+                    map: map, position: pos, draggable: isEditMode,
+                    image: new kakao.maps.MarkerImage('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgCctvPin))), new kakao.maps.Size(32, 40), { offset: new kakao.maps.Point(16, 40) })
+                });
+
+                // loadData() 함수 내부의 row 반복문 안에서 작성
+const openInfo = () => {
+    // 1. 날짜 형식을 yyyy-mm으로 변환하는 로직
+    let formattedDate = '정보없음';
+    if (date) {
+        // "2023-05-21" 또는 "2023.05.21" 등에서 앞의 7글자(yyyy-mm)만 추출
+        const cleanDate = String(date).replace(/[^0-9]/g, ''); // 숫자만 남김
+        if (cleanDate.length >= 6) {
+            formattedDate = cleanDate.substring(0, 4) + '-' + cleanDate.substring(4, 6);
+        } else {
+            formattedDate = date; // 형식이 맞지 않으면 원본 표시
+        }
+    }
+
+    const naviUrl = `https://map.kakao.com/link/to/${encodeURIComponent(name)},${lat},${lng}`;
+    
+    // 2. 변경된 디자인의 HTML 컨텐츠
+    const content = `
+        <div class="info-wrap">
+            <div class="info-header">
+                <div class="header-text-group">
+                <span class="info-mgmt">No. ${mgmtId}</span>
+                <div class="info-title">${name}</div>
+            </div>
+            <button class="info-close-btn" onclick="infowindow.close()" title="닫기">×</button>
+         </div>
+            <div class="info-scroll-box">
+                <div class="info-body">
+                    <b>🗓️ 설치일자</b> <span style="color:#e74c3c; font-weight:bold;">${formattedDate}</span><br>
+                    <b>🎥 카메라수</b> ${count}대<br>
+                    <b>📡 통신망</b> ${net || '정보없음'}<br>
+                    <b>🏗️ 거치방식</b> ${col9 || '정보없음'}<br>
+                    <b>🎯 목적구분</b> ${col10 || '정보없음'}<br>
+                    <b>🏠 상세주소</b> ${addr}<br>
+                    <b>✅ 준공상태</b> ${isDone || '정보없음'}
+                </div>
+            </div>
+            <div class="info-footer">
+                <a href="${naviUrl}" target="_blank" class="navi-btn">카카오맵 길찾기 ↗</a>
+            </div>
+        </div>`;
+
+    infowindow.setContent(content);
+    infowindow.open(map, marker);
+};
+
+                kakao.maps.event.addListener(marker, 'click', openInfo);
+                markers.push({ mgmtId: String(mgmtId), name: String(name), marker, info: row, openInfo, isDone: String(isDone).trim() });
+            });
+            updateDashboard(); 
+        });
+
+        
+    }
+
+    // 4. 필터 및 대시보드 (복구)
+    function setCompletionFilter(type) {
+        currentFilter = type;
+        document.getElementById('btnFilterAll').className = 'filter-btn' + (type === '전체' ? ' active-all' : '');
+        document.getElementById('btnFilterDone').className = 'filter-btn' + (type === '준공' ? ' active-done' : '');
+        document.getElementById('btnFilterYet').className = 'filter-btn' + (type === '미준공' ? ' active-yet' : '');
+        updateDashboard();
+    }
+
+    function updateDashboard() {
+        let totalCams = 0, visibleCount = 0, stats = {};
+        markers.forEach(item => {
+            const matchFilter = (currentFilter === '전체') || (item.isDone === currentFilter);
+            if (matchFilter) {
+                item.marker.setMap(map);
+                visibleCount++;
+                totalCams += (parseInt(item.info[2]) || 0);
+                const gu = item.info[11], dong = item.info[12];
+                if(gu && dong) {
+                    if(!stats[gu]) stats[gu] = {};
+                    stats[gu][dong] = (stats[gu][dong] || 0) + 1;
+                }
+            } else { item.marker.setMap(null); }
+        });
+        document.getElementById('totalPoints').innerText = visibleCount.toLocaleString();
+        document.getElementById('totalCams').innerText = totalCams.toLocaleString();
+        renderStats(stats);
+    }
+
+   function renderStats(stats) {
+    const list = document.getElementById('regionList');
+    list.innerHTML = "";
+
+    let grandTotal = 0;
+    for (let gu in stats) {
+        for (let dong in stats[gu]) grandTotal += stats[gu][dong];
+    }
+
+    for (let gu in stats) {
+        let guTotal = 0;
+        for (let dong in stats[gu]) guTotal += stats[gu][dong];
+        let percent = grandTotal > 0 ? ((guTotal / grandTotal) * 100).toFixed(1) : 0;
+
+        let g = document.createElement('div'); 
+        g.className = "gu-group"; // 클래스명 변경 (그룹 관리용)
+        
+        // 헤더 영역 (클릭 시 토글)
+        g.innerHTML = `
+            <div class="gu-header-row" onclick="this.parentElement.classList.toggle('active')">
+                <span class="gu-name">${gu}</span>
+                <span class="gu-data">${guTotal}개소 (${percent}%) ▾</span>
+            </div>
+            <div class="dong-container"></div>
+        `;
+
+        const dongContainer = g.querySelector('.dong-container');
+        for (let dong in stats[gu]) {
+            let d = document.createElement('div'); 
+            d.className = "dong-item"; 
+            d.innerText = `${dong} (${stats[gu][dong]})`;
+            d.onclick = (e) => { 
+                e.stopPropagation(); // 구 클릭 이벤트 전파 방지
+                filterByRegion(gu, dong); 
+            };
+            dongContainer.appendChild(d);
+        }
+        
+        g.onclick = () => filterByRegion(gu, null);
+        list.appendChild(g);
+    }
+}
+
+    // 5. 검색 기능 (복구)
+    function searchData(type) {
+        const kw = document.getElementById(type === 'name' ? 'keyword' : 'mgmtKeyword').value.trim().toLowerCase();
+        const resDiv = document.getElementById('cctvResults');
+        resDiv.innerHTML = "";
+        markers.filter(m => {
+            const matchFilter = (currentFilter === '전체') || (m.isDone === currentFilter);
+            return matchFilter && (type === 'name' ? m.name.toLowerCase().includes(kw) : m.mgmtId.toLowerCase().includes(kw));
+        }).forEach(item => {
+            const div = document.createElement('div');
+            div.className = "list-item";
+            div.innerHTML = `<b>[${item.mgmtId}]</b><br>${item.name}`;
+            div.onclick = () => { map.setCenter(item.marker.getPosition()); map.setLevel(2); item.openInfo(); };
+            resDiv.appendChild(div);
+        });
+    }
+
+    function searchAddr() {
+    const addrInput = document.getElementById('addrKeyword');
+    if (!addrInput) return; // 입력창이 없으면 중단
+
+    const kw = addrInput.value.trim();
+    if (!kw) {
+        alert("검색할 주소를 입력해주세요.");
+        return;
+    }
+
+    // 카카오 주소 검색 API 호출
+    geocoder.addressSearch(kw, (result, status) => {
+        const resDiv = document.getElementById('addrResults');
+        if (!resDiv) return;
+
+        // 검색 성공 시 (카카오 API 상태 값은 'OK' 문자열임)
+        if (status === kakao.maps.services.Status.OK || status === 'OK') {
+            let html = "";
+            result.forEach((data) => {
+                // 리스트 클릭 시 해당 좌표로 이동하는 moveToAddr 함수 연결
+                html += `
+                    <div class="list-item" 
+                         style="cursor:pointer; padding:12px; border-bottom:1px solid #eee; font-size:13px;" 
+                         onclick="moveToAddr(${data.y}, ${data.x})">
+                        <div style="font-weight:bold; color:#1a5276;">📍 ${data.address_name}</div>
+                        <div style="font-size:11px; color:#888; margin-top:4px;">클릭 시 해당 위치로 이동</div>
+                    </div>`;
+            });
+            resDiv.innerHTML = html;
+        } else {
+            resDiv.innerHTML = "<div style='padding:15px; text-align:center; color:#999;'>검색 결과가 없습니다.</div>";
+        }
+    });
+}
+
+  // [복구] 검색된 주소 클릭 시 지도 이동 및 빨간 원 표시
+function moveToAddr(y, x) {
+    const coords = new kakao.maps.LatLng(y, x);
+
+    // 기존에 있던 검색 원 제거
+    if (searchCircle) {
+        searchCircle.setMap(null);
+    }
+
+    // 반경 50m 빨간색 원 생성
+    searchCircle = new kakao.maps.Circle({
+        center: coords,
+        radius: 50,
+        strokeWeight: 2,
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        fillColor: '#FF0000',
+        fillOpacity: 0.3
+    });
+
+    searchCircle.setMap(map);
+    map.setCenter(coords);
+    map.setLevel(3); // 50m 원이 잘 보이는 확대 레벨로 조정
+}
+
+    // 6. 위치 및 기타 유틸
+    let watchId = null; // 실시간 위치 추적 프로세스 ID 저장 변수
+
+function getCurrentLocation() {
+    const btn = document.getElementById('myLocBtn'); // 내 위치 버튼 ID
+
+    // 1. [중지 로직] 이미 추적 중이라면 추적을 멈춤
+    if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId); // 실시간 추적 중단
+        watchId = null; // ID 초기화
+
+        // 지도에서 내 위치 마커와 원 제거
+        if (myLocationMarker) myLocationMarker.setMap(null);
+        if (myLocationCircle) myLocationCircle.setMap(null);
+
+        // 버튼 상태 복구
+        if (btn) {
+            btn.innerHTML = "<span>📍</span> 내 위치 추적";
+            btn.style.backgroundColor = ""; // 기본 색상으로 복구
+            btn.style.color = "";
+        }
+        alert("위치 추적을 종료합니다.");
+        return; // 함수 종료
+    }
+
+    // 2. [시작 로직] 추적 중이 아니라면 GPS 감시 시작
+    if (!navigator.geolocation) {
+        alert("이 브라우저에서는 GPS를 지원하지 않습니다.");
+        return;
+    }
+
+    // 버튼 상태 변경 (추적 중임을 표시)
+    if (btn) {
+        btn.innerHTML = "<span>📡</span> 추적 중 (중단하려면 클릭)";
+        btn.style.backgroundColor = "#1a5276"; // 헤더와 같은 네이비 색상으로 강조
+        btn.style.color = "white";
+    }
+
+    // 실시간 위치 감시 시작
+    watchId = navigator.geolocation.watchPosition(function(pos) {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const locPosition = new kakao.maps.LatLng(lat, lng);
+
+        // 기존 마커/원 제거 후 새로 생성 (실시간 이동 반영)
+        if (myLocationMarker) myLocationMarker.setMap(null);
+        if (myLocationCircle) myLocationCircle.setMap(null);
+
+        // 내 위치 파란색 원 (반경 10m)
+        myLocationCircle = new kakao.maps.Circle({
+            center: locPosition,
+            radius: 10,
+            strokeWeight: 2,
+            strokeColor: '#0054FF',
+            strokeOpacity: 0.8,
+            fillColor: '#A2C4FF',
+            fillOpacity: 0.4
+        });
+
+        // 내 위치 마커
+        myLocationMarker = new kakao.maps.Marker({
+            position: locPosition,
+            zIndex: 1000
+        });
+
+        myLocationCircle.setMap(map);
+        myLocationMarker.setMap(map);
+
+        // 이동할 때마다 지도를 중앙으로 이동 및 확대
+        map.setCenter(locPosition);
+        if (map.getLevel() > 2) {
+            map.setLevel(2); // 10m 원이 잘 보이도록 상세 확대
+        }
+
+    }, function(error) {
+        // 에러 발생 시 처리
+        alert("위치 정보를 가져오는데 실패했습니다. 권한 설정을 확인하세요.");
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        if (btn) btn.innerHTML = "<span>📍</span> 내 위치 추적";
+    }, {
+        enableHighAccuracy: true, // 고정밀 GPS 사용 (모바일 필수)
+        maximumAge: 0,
+        timeout: 10000
+    });
+}
+
+    // 로드뷰 로직 (위와 동일하게 유지)
+    function toggleRVMode() {
+        isRvMode = !isRvMode;
+        document.getElementById('rvBtn').classList.toggle('active', isRvMode);
+        rvOverlay.setMap(isRvMode ? map : null);
+        if(!isRvMode) { document.getElementById('roadview-container').style.display='none'; rvMarker.setMap(null); }
+    }
+
+    kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+    if (!isRvMode) return; // 로드뷰 모드(버튼 노란색)가 아니면 무시
+
+    const position = mouseEvent.latLng;
+
+    // 클릭한 지점 근처의 로드뷰 데이터 가져오기
+    rvc.getNearestPanoId(position, 50, function(panoId) {
+        if (panoId) {
+            openRV(panoId, position);
+        } else {
+            alert("이 지점은 로드뷰를 지원하지 않습니다.");
+        }
+    });
+});
+
+// [수정] 로드뷰 실행 함수: 마커 표시 + 컨트롤 숨기기 + 중앙 이동
+function openRV(panoId, position) {
+    const rvContainer = document.getElementById('roadview-container');
+    const controls = document.querySelectorAll('.top-right-controls, .zoom-controls, .map-type-control');
+
+    // 1. 로드뷰 창 열기 및 컨트롤 숨기기
+    rvContainer.style.display = 'block';
+    controls.forEach(el => el.style.display = 'none'); // 지도 버튼들 숨김
+
+    // 2. 로드뷰 위치 설정
+    rv.setPanoId(panoId, position);
+    
+    // 3. 로드뷰 마커 설정 및 지도 중앙 이동
+    if (rvMarker) {
+        rvMarker.setPosition(position);
+        rvMarker.setMap(map); // 마커를 지도에 표시
+    }
+    
+    // 4. 레이아웃 재배치 및 중앙 정렬 (중요)
+    setTimeout(() => {
+        rv.relayout();
+        map.relayout();
+        map.setCenter(position); // 캐릭터 마커가 지도의 정중앙에 오도록 이동
+    }, 100);
+}
+
+// [수정] 로드뷰 닫기 함수: 마커 제거 + 컨트롤 복구
+function closeRV() {
+    const rvContainer = document.getElementById('roadview-container');
+    const controls = document.querySelectorAll('.top-right-controls, .zoom-controls, .map-type-control');
+
+    // 1. 로드뷰 창 닫기 및 컨트롤 다시 표시
+    rvContainer.style.display = 'none';
+    controls.forEach(el => el.style.display = 'block');
+
+    // 2. 지도 위 로드뷰 마커 제거
+    if (rvMarker) {
+        rvMarker.setMap(null);
+    }
+
+    // 3. 지도 크기 정상화
+    setTimeout(() => map.relayout(), 100);
+}
+function getRvMarkerSvg(angle) {
+    // angle은 로드뷰의 pan 값 (0~360도)
+    return `
+    <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g transform="rotate(${angle} 50 50)">
+            <path d="M50 50 L20 10 A45 45 0 0 1 80 10 L50 50Z" fill="#1A73E8" fill-opacity="0.3"/>
+            <path d="M50 5 L58 20 H42 L50 5Z" fill="#1A73E8" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+        </g>
+
+        <g transform="translate(32, 28)">
+            <ellipse cx="18" cy="48" rx="8" ry="3" fill="black" fill-opacity="0.2"/>
+            <path d="M18 48L11 35H25L18 48Z" fill="#333"/>
+            <path d="M9 35C9 35 7 22 18 22C29 22 27 35 27 35H9Z" fill="#4A89FF" stroke="#333" stroke-width="2"/>
+            <circle cx="18" cy="16" r="14" fill="#FFCE00" stroke="#333" stroke-width="2"/>
+            <circle cx="13" cy="14" r="1.8" fill="#333"/>
+            <circle cx="23" cy="14" r="1.8" fill="#333"/>
+            <path d="M15 20C15 20 16.5 22 18 22C19.5 22 21 20 21 20" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+    </svg>`;
+}
+// [추가] 로드뷰 안에서 움직일 때 지도의 마커도 같이 이동
+kakao.maps.event.addListener(rv, 'position_changed', function() {
+    const rvPos = rv.getPosition();
+    if (rvMarker && document.getElementById('roadview-container').style.display === 'block') {
+        rvMarker.setPosition(rvPos);
+        map.setCenter(rvPos); // 움직일 때마다 지도가 마커를 따라 중앙으로 이동
+    }
+});
+
+// [복구] 지도 타입 전환 (ROADMAP / HYBRID)
+function setMap(t) {
+    const type = (t === 'ROADMAP') ? kakao.maps.MapTypeId.ROADMAP : kakao.maps.MapTypeId.HYBRID;
+    map.setMapTypeId(type);
+    
+    // 버튼 스타일 업데이트
+    const btnRoad = document.getElementById('btnRoadmap');
+    const btnSky = document.getElementById('btnSkyview');
+    if(btnRoad) btnRoad.classList.toggle('active', t === 'ROADMAP');
+    if(btnSky) btnSky.classList.toggle('active', t === 'HYBRID');
+}
+
+// [수정] 로드뷰 마커를 생성하고 이미지를 업데이트하는 함수
+function updateRvMarker(position, angle) {
+    const svgBase64 = btoa(unescape(encodeURIComponent(getRvMarkerSvg(angle))));
+    const image = new kakao.maps.MarkerImage(
+        'data:image/svg+xml;base64,' + svgBase64,
+        new kakao.maps.Size(80, 80),
+        { offset: new kakao.maps.Point(40, 40) }
+    );
+
+    rvMarker.setMap(map);
+    rvMarker.setPosition(position);
+    rvMarker.setImage(image);
+}
+
+// [수정] 로드뷰 실행 시 호출되는 함수
+function openRV(panoId, position) {
+    const rvContainer = document.getElementById('roadview-container');
+    const typeControls = document.querySelector('.top-right-controls');
+    const zoomControls = document.querySelector('.zoom-controls');
+
+    rvContainer.style.display = 'block';
+    if(typeControls) typeControls.style.display = 'none'; // 지도 버튼 숨김
+    if(zoomControls) zoomControls.style.display = 'none';
+
+    rv.setPanoId(panoId, position);
+    
+    // 마커 표시 및 중앙 이동
+    updateRvMarker(position, rv.getViewpoint().pan);
+    
+    setTimeout(() => {
+        rv.relayout();
+        map.relayout();
+        map.setCenter(position); // 마커가 중앙에 오도록!
+    }, 150);
+}
+
+// [추가] 로드뷰 시점(방향)이 변할 때 마커의 화살표도 같이 회전
+kakao.maps.event.addListener(rv, 'viewpoint_changed', function() {
+    if (rvMarker.getMap()) {
+        updateRvMarker(rv.getPosition(), rv.getViewpoint().pan);
+    }
+});
+
+// [추가] 로드뷰 내에서 위치 이동 시 마커 좌표 동기화
+kakao.maps.event.addListener(rv, 'position_changed', function() {
+    const pos = rv.getPosition();
+    updateRvMarker(pos, rv.getViewpoint().pan);
+    map.setCenter(pos); // 지도가 캐릭터를 따라감
+});
+
+// 편집 모드 토글 (버튼 디자인 활성화용)
+function toggleEditMode() {
+    isEditMode = !isEditMode;
+    const btn = document.getElementById('editBtn');
+    
+    if (isEditMode) {
+        btn.classList.add('active-mode');
+        alert("📍 편집 모드 활성: 마커를 드래그하면 즉시 위치가 수정됩니다.");
+    } else {
+        btn.classList.remove('active-mode');
+        alert("🔒 편집 모드 종료");
+    }
+
+    // 모든 마커의 드래그 가능 상태 변경
+    markers.forEach(item => {
+        item.marker.setDraggable(isEditMode);
+        
+        // 드래그 종료(dragend) 이벤트 등록 (중복 등록 방지)
+        if (isEditMode && !item.hasDragEvent) {
+            kakao.maps.event.addListener(item.marker, 'dragend', function() {
+                const newPos = item.marker.getPosition();
+                const lat = newPos.getLat();
+                const lng = newPos.getLng();
+
+                // 1. 사용자 확인 팝업
+                if (confirm(`[${item.name}]\n해당 위치로 이동하시겠습니까?`)) {
+                    // 2. '예' 클릭 시 즉시 서버 전송
+                    updateSingleLocation(item.mgmtId, lat, lng);
+                } else {
+                    // 3. '아니오' 클릭 시 마커를 원래 위치로 되돌림
+                    item.marker.setPosition(new kakao.maps.LatLng(item.info[6], item.info[7]));
+                }
+            });
+            item.hasDragEvent = true;
+        }
+    });
+}
+
+// 개별 마커 위치 즉시 저장 함수
+function updateSingleLocation(mgmtId, lat, lng) {
+    // 사용자님의 GAS 구조에 맞게 GET 파라미터 방식으로 주소 생성
+    // action=updateLocation, id=관리번호, lat=위도, lng=경도
+    const url = `${SCRIPT_URL}?action=updateLocation&id=${encodeURIComponent(mgmtId)}&lat=${lat}&lng=${lng}`;
+
+    console.log("저장 요청 중...", url);
+
+    fetch(url) // GET 방식이므로 옵션 없이 url만 넣으면 됩니다.
+    .then(res => res.json())
+    .then(result => {
+        // 사용자님 GAS 코드는 성공 시 { status: "success" } 를 반환함
+        if (result.status === "success") {
+            // ★ 저장이 실제로 완료된 시점에만 팝업 출력
+            alert("✅ 저장되었습니다.");
+            
+            // 메모리 내 데이터 업데이트 (새로고침 안 해도 반영되도록)
+            const target = markers.find(m => m.mgmtId === mgmtId);
+            if(target) {
+                target.info[6] = lat;
+                target.info[7] = lng;
+            }
+        } else {
+            alert("❌ 저장 실패: " + (result.message || "알 수 없는 오류"));
+        }
+    })
+    .catch(err => {
+        console.error("Error:", err);
+        alert("⚠️ 네트워크 오류가 발생했습니다. SCRIPT_URL 또는 권한 설정을 확인하세요.");
+    });
+}
+
+// 지역별 마커 필터링 함수
+function filterByRegion(gu, dong) {
+    let visibleCount = 0;
+    let bounds = new kakao.maps.LatLngBounds(); 
+    let errorRows = []; // 에러 데이터 수집
+
+    markers.forEach((item) => {
+        const matchGu = !gu || item.info[11] === gu;
+        const matchDong = !dong || item.info[12] === dong;
+
+        if (matchGu && matchDong) {
+            const lat = parseFloat(item.info[6]);
+            const lng = parseFloat(item.info[7]);
+
+            // 정상 범위(한국)인지 체크
+            if (!isNaN(lat) && !isNaN(lng) && lat > 30 && lat < 45 && lng > 120 && lng < 135) {
+                item.marker.setMap(map);
+                bounds.extend(new kakao.maps.LatLng(lat, lng));
+                visibleCount++;
+            } else {
+                item.marker.setMap(null);
+                // 범인 검거: 관리번호와 잘못된 좌표 저장
+                errorRows.push(`관리번호: ${item.mgmtId} (위도:${item.info[6]}, 경도:${item.info[7]})`);
+            }
+        } else {
+            item.marker.setMap(null);
+        }
+    });
+
+    if (errorRows.length > 0) {
+        console.error("잘못된 데이터 목록:", errorRows);
+        alert(`⚠️ ${gu || dong} 지역에 잘못된 좌표가 ${errorRows.length}개 있습니다.\n첫번째 오류: ${errorRows[0]}\n시트에서 수정해주세요.`);
+    }
+
+    if (visibleCount > 0) {
+        map.setBounds(bounds);
+    }
+}
+function resetMarkers() {
+    // ... (기존 코드들) ...
+
+    // 지도 초기 상태 복구
+    map.setMapTypeId(kakao.maps.MapTypeId.HYBRID); 
+    map.setCenter(new kakao.maps.LatLng(37.1995, 126.8312));
+    map.setLevel(8);
+
+    // [중요] 버튼 상태도 다시 스카이뷰가 눌린 상태로!
+    const btnRoad = document.getElementById('btnRoadmap');
+    const btnSky = document.getElementById('btnSkyview');
+    if (btnSky) btnSky.classList.add('active');
+    if (btnRoad) btnRoad.classList.remove('active');
+
+    updateDashboard(); // 마커 다시 뿌리기
+}
+    loadData();
+</script>
+</body>
+</html>
