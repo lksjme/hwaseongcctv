@@ -186,7 +186,7 @@
 
     // 필터링된 기반 데이터로 지역 통계 업데이트 (공사상태/검색어 반영됨)
     function updateDistrictStats(currentBaseData) {
-        const idxDistrict = 7; 
+        const idxDistrict = 6; 
         const stats = { '전체': currentBaseData.length };
         currentBaseData.forEach(row => {
             const d = row[idxDistrict] || "미분류";
@@ -233,7 +233,7 @@
         const activeFilters = Array.from(selects).map(s => ({ index: s.dataset.index, value: s.value })).filter(f => f.value !== "");
         
         const idxStatus = 2;   
-        const idxDistrict = 7; 
+        const idxDistrict = 6; 
 
         // 1. 공사상태 + 검색어 + 열필터로 1차 필터링
         const baseFiltered = allRows.filter(row => {
