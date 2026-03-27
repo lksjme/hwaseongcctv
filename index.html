@@ -276,7 +276,7 @@
         let totalCompleted = 0; // 준공 총계
 
         validRows.forEach(row => {
-            const [h, c, aa, v, af] = [row[7], row[2], row[26], row[21], row[31]];
+            const [h, c, aa, v, af] = [row[6], row[2], row[22], row[17], row[24]];
             
             // [수정] 행정구역별 수량을 C열 '준공' 기준으로 매핑
             if(c === '준공' && h) {
