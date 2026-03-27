@@ -66,7 +66,56 @@
         .card-title-text { font-size: 15px; font-weight: 700; color: #fff; text-transform: uppercase; }
 
         /* 수동 배치 태그 스타일 */
-        .map-tag { position: absolute; transform: translate(-50%, -50%); text-align: center; z-index: 5; }
+        .map-tag {
+    position: absolute;
+    cursor: pointer;
+    z-index: 10;
+}
+.map-tooltip {
+    position: absolute;
+    bottom: 140%; /* 태그 위쪽으로 배치 */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px); /* 아래에서 위로 올라오는 시작점 */
+    background: rgba(15, 15, 20, 0.95); /* 다크 테마 배경 */
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 차트 같은 부드러운 움직임 */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 204, 255, 0.3);
+    z-index: 100;
+}
+
+/* 툴팁 하단 화살표 */
+.map-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: rgba(15, 15, 20, 0.95) transparent transparent transparent;
+}
+
+/* 마우스 올렸을 때 애니메이션 실행 */
+.map-tag:hover .map-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0); /* 제자리로 올라옴 */
+}
+
+/* 숫자 태그 자체도 살짝 커지는 효과 */
+.map-tag:hover .tag-count {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--accent);
+    transition: 0.3s;
+}
         .tag-count { 
             background: rgba(10, 10, 12, 0.95); padding: 6px 16px; border-radius: 6px; 
             border: 2px solid; font-size: 20px; font-weight: 900; color: #fff;
@@ -165,12 +214,75 @@
         font-size: 11px;
     }
 }
+/* 내비게이션 바: 가로로 나란히 배치 */
+/* 내비게이션 바: 가로 배치 유지 */
+.nav-bar {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 25px 0;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    width: 220px;         /* 가로로 충분히 길게 */
+    height: 48px;         /* 슬림한 높이 */
+    
+    /* 배경: 아주 어두운 네이비/블랙톤에 투명도 부여 */
+    background: rgba(15, 15, 20, 0.85); 
+    /* 테두리: 배경보다 살짝 밝은 선으로 입체감 부여 */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    
+    color: #aaa;          /* 기본 글자색은 차분하게 */
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: -0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); /* 깊이감 있는 그림자 */
+}
+
+/* 활성화 및 호버 상태: 배경과 어울리는 네온 효과 */
+.nav-btn.enabled:hover {
+    transform: translateY(-3px);
+    background: rgba(30, 30, 40, 0.9); /* 호버 시에만 살짝 밝아짐 */
+    border-color: rgba(0, 204, 255, 0.5);
+    color: #fff; /* 글자색 강조 */
+    /* 버튼 전체에 은은한 광채 */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 204, 255, 0.1);
+}
+
+/* 아이콘 박스 */
+.nav-icon {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.icon-svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: 0.3s;
+}
+
+/* 호버 시 아이콘도 같이 밝아지게 */
+.nav-btn:hover .icon-svg {
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+}
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo"><span>HWASEONG SPECIAL CITY </span> CCTV MANAGEMENT SYSTEM</div>
+    <div class="logo"><span>HWASEONG</span> CCTV MANAGEMENT SYSTEM</div>
     <div id="loginArea" class="login-area">
         <input type="text" id="userId" placeholder="아이디">
         <input type="password" id="userPw" placeholder="비밀번호">
@@ -183,10 +295,38 @@
         <button onclick="handleLogout()" style="padding:6px 12px; background:#c0392b; border:none; color:white; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">LOGOUT</button>
     </div>
 </header>
+<svg style="width:0; height:0; position:absolute;">
+    <defs>
+        <linearGradient id="grad-orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ff9f43; stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#ee5253; stop-opacity:1" />
+        </linearGradient>
+        <linearGradient id="grad-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00d2ff; stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#3a7bd5; stop-opacity:1" />
+        </linearGradient>
+    </defs>
+</svg>
 
 <nav class="nav-bar">
-    <a href="list.html" id="btnList" class="nav-btn">📋 관제리스트</a>
-    <a href="map.html" id="btnMap" class="nav-btn">📍 GIS 통합지도</a>
+    <a href="list.html" id="btnList" class="nav-btn enabled">
+        <div class="nav-icon">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="url(#grad-orange)"></path>
+                <path d="M9 12h6m-6 4h6" stroke="url(#grad-orange)"></path>
+            </svg>
+        </div>
+        관제 리스트
+    </a>
+
+    <a href="map.html" id="btnMap" class="nav-btn enabled">
+        <div class="nav-icon">
+            <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke="url(#grad-blue)"></path>
+            </svg>
+        </div>
+        GIS 통합지도
+    </a>
 </nav>
 
 <div class="dashboard-container">
@@ -232,10 +372,10 @@
 
     /* 수동 배치 설정 (Hwaseong Map) */
     const GU_CONFIG = [
-        { name: '만세구', top: '41%', left: '27%', class: 'manse' },
-        { name: '효행구', top: '35%', left: '54%', class: 'hyo' },
-        { name: '병점구', top: '39%', left: '75%', class: 'byeong' },
-        { name: '동탄구', top: '47%', left: '91%', class: 'dongtan' }
+        { name: '만세구', top: '40%', left: '25%', class: 'manse' },
+        { name: '효행구', top: '34%', left: '53%', class: 'hyo' },
+        { name: '병점구', top: '38%', left: '73%', class: 'byeong' },
+        { name: '동탄구', top: '46%', left: '89%', class: 'dongtan' }
     ];
 
     Chart.register(ChartDataLabels);
@@ -275,26 +415,62 @@
         const stats = { dist: {}, status: {}, net: {}, vendor: {}, purpose: {} };
         let totalCompleted = 0; // 준공 총계
 
-        validRows.forEach(row => {
-            const [h, c, aa, v, af] = [row[6], row[2], row[22], row[17], row[24]];
-            
-            // [수정] 행정구역별 수량을 C열 '준공' 기준으로 매핑
-            if(c === '준공' && h) {
-                stats.dist[h] = (stats.dist[h]||0)+1;
-                totalCompleted++;
-            }
-            
-            if(c) stats.status[c] = (stats.status[c]||0)+1;
-            if(aa) stats.net[aa] = (stats.net[aa]||0)+1;
-            if(v) stats.vendor[v] = (stats.vendor[v]||0)+1;
-            if(af) stats.purpose[af] = (stats.purpose[af]||0)+1;
-        });
+     validRows.forEach(row => {
+    // 인덱스 설정: h(행정구역), c(준공구분), aa(통신사), v(제조사), af(목적)
+    // [추가] cameraType: 카메라 형태(회전/고정/어안)가 적힌 열 인덱스를 확인 후 입력하세요 (예: row[10])
+    const [h, c, aa, v, af, cameraType] = [row[6], row[2], row[22], row[17], row[24], row[10]];
+    
+    // 1. 행정구역별 상세 수량 집계 (준공 기준)
+    if(c === '준공' && h) {
+        // 해당 구의 데이터 객체가 없으면 초기화 (숫자가 아닌 객체로 생성)
+        if (!stats.dist[h]) {
+            stats.dist[h] = { total: 0, ptz: 0, fix: 0, fish: 0 };
+        }
+        
+        stats.dist[h].total++; // 총계 증가
+
+        // 카메라 형태별 상세 수량 증가 (시트 텍스트 기준)
+        if (cameraType) {
+            if (cameraType.includes('회전')) stats.dist[h].ptz++;
+            else if (cameraType.includes('고정')) stats.dist[h].fix++;
+            else if (cameraType.includes('어안')) stats.dist[h].fish++;
+        }
+        
+        totalCompleted++;
+    }
+    
+    // 2. 기존 기타 통계 유지
+    if(c) stats.status[c] = (stats.status[c]||0)+1;
+    if(aa) stats.net[aa] = (stats.net[aa]||0)+1;
+    if(v) stats.vendor[v] = (stats.vendor[v]||0)+1;
+    if(af) stats.purpose[af] = (stats.purpose[af]||0)+1;
+});
 
         // 지도 태그 업데이트 (준공 기준 수량)
-        document.getElementById('mapOverlay').innerHTML = GU_CONFIG.map(g => `
-            <div class="map-tag" style="top:${g.top}; left:${g.left};">
-                <div class="tag-count ${g.class}">${(stats.dist[g.name]||0).toLocaleString()}</div>
-            </div>`).join('');
+        document.getElementById('mapOverlay').innerHTML = GU_CONFIG.map(g => {
+    // stats.dist[g.name]이 없으면(undefined) 0으로 채워진 객체를 대신 사용함
+    const d = stats.dist[g.name] || { total: 0, ptz: 0, fix: 0, fish: 0 };
+    
+    // d.total이 undefined일 경우를 대비해 한번 더 0으로 체크
+    const totalDisplay = (d.total || 0).toLocaleString();
+
+    return `
+        <div class="map-tag" style="top:${g.top}; left:${g.left};">
+            <div class="map-tooltip">
+                <strong style="color:var(--accent); display:block; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:3px;">${g.name} 상세</strong>
+                <div style="display:flex; justify-content:space-between; gap:15px;">
+                    <span>회전형</span> <span style="color:#ffbb33">${(d.ptz || 0).toLocaleString()}대</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:15px;">
+                    <span>고정형</span> <span style="color:#00ccff">${(d.fix || 0).toLocaleString()}대</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; gap:15px;">
+                    <span>어안형</span> <span style="color:#2ecc71">${(d.fish || 0).toLocaleString()}대</span>
+                </div>
+            </div>
+            <div class="tag-count ${g.class}">${totalDisplay}</div>
+        </div>`;
+}).join('');
             
         document.getElementById('totalCnt').innerText = totalCompleted.toLocaleString();
 
@@ -343,10 +519,10 @@
                 // [추가] 차트 애니메이션 설정
                 animation: { animateRotate: true, animateScale: true, duration: 1500, easing: 'easeOutElastic' },
                 plugins: {
-                    legend: { position: 'right', labels: { color: '#888', boxWidth: 12, padding: 15, font: { size: 10, weight: 'bold' } } },
+                    legend: { position: 'right', labels: { color: '#888', boxWidth: 12, padding: 15, font: { size: 10, weight: 'nomal' } } },
                     // [수정] 레이블 원 안으로 배치 및 스타일
                     datalabels: { 
-                        color: '#fff', font: { size: 14, weight: '900' },
+                        color: '#fff', font: { size: 14, weight: '500' },
                         anchor: 'center', align: 'center', // 중앙 배치
                         formatter: (val, ctx) => {
                             const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
@@ -377,11 +553,11 @@
                 animation: { duration: 1500, easing: 'easeOutQuart' },
                 plugins: {
                     legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'right', color: '#eee', font: { size: 13, weight: 'bold' }, formatter: (v) => v.toLocaleString() }
+                    datalabels: { anchor: 'end', align: 'right', color: '#eee', font: { size: 13, weight: 'nomal' }, formatter: (v) => v.toLocaleString() }
                 },
                 scales: { 
                     x: { ticks: { color: '#666', font:{size:11} }, grid: { color: '#222', drawBorder: false } },
-                    y: { ticks: { color: '#aaa', font:{size:11, weight:'bold'} }, grid: { display: false } }
+                    y: { ticks: { color: '#aaa', font:{size:11, weight:'nomal'} }, grid: { display: false } }
                 }
             }
         });
