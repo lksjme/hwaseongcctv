@@ -277,6 +277,18 @@
 .nav-btn:hover .icon-svg {
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
 }
+/* 전체 자산 박스 호버 시 툴팁 표시 로직 */
+.total-status-wrapper:hover #totalTooltip {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateX(-50%) translateY(0) !important;
+}
+
+/* 박스 자체에도 약간의 반응 추가 (선택사항) */
+.total-status-wrapper:hover {
+    border-color: var(--accent) !important;
+    background: rgba(20, 20, 25, 0.95) !important;
+}
     </style>
 </head>
 <body>
@@ -329,17 +341,33 @@
     </a>
 </nav>
 
+
 <div class="dashboard-container">
     <div class="dashboard-grid" id="dashboard">
         <div class="card card-main">
-            <div class="map-overlay-dark"></div>
-            <div class="card-title-box"><span class="card-title-text">행정구역별 설치 분포</span></div>
-            <div id="mapOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index: 5;"></div>
-            <div style="position:absolute; bottom:25px; right:25px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border:1px solid #333; text-align:center; z-index: 10; box-shadow: 0 5px 20px rgba(0,0,0,0.7);">
-                <div style="font-size:11px; color:#999; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">TOTAL ASSETS</div>
-                <div id="totalCnt" style="font-size:32px; font-weight:900; color:var(--accent);">0</div>
+    <div class="map-overlay-dark"></div>
+    <div class="card-title-box"><span class="card-title-text">행정구역별 설치 분포</span></div>
+    <div id="mapOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index: 5;"></div>
+    
+    <div class="total-status-wrapper" style="position:absolute; bottom:25px; right:25px; background:rgba(0,0,0,0.85); padding:15px; border-radius:12px; border:1px solid #333; text-align:center; z-index: 10; box-shadow: 0 5px 20px rgba(0,0,0,0.7); cursor: pointer;">
+        
+        <div id="totalTooltip" class="map-tooltip" style="bottom: 110%; left: 50%; transform: translateX(-50%) translateY(10px); width: 160px; pointer-events: none;">
+            <strong style="color:var(--accent); display:block; margin-bottom:8px; border-bottom:1px solid #444; padding-bottom:5px; font-size:13px;">전체 기종별 현황</strong>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-weight: normal;">
+                <span style="color:#aaa;">회전형</span> <span id="grandPtz" style="color:#ffbb33;">0</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-weight: normal;">
+                <span style="color:#aaa;">고정형</span> <span id="grandFix" style="color:#00ccff;">0</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight: normal;">
+                <span style="color:#aaa;">어안형</span> <span id="grandFish" style="color:#2ecc71;">0</span>
             </div>
         </div>
+
+        <div style="font-size:11px; color:#999; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">TOTAL ASSETS</div>
+        <div id="totalCnt" style="font-size:32px; font-weight:900; color:var(--accent);">0</div>
+    </div>
+</div>
 
         <div class="card">
             <div class="card-title">준공여부 현황</div>
@@ -405,46 +433,81 @@
         document.getElementById('welcomeMsg').innerText = name + "님 접속 중";
         loadChartData();
     }
+async function loadChartData() {
+    const res = await fetch(DATA_URL);
+    const text = await res.text();
+    const rows = text.split('\n').slice(1).map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"(.*)"$/, '$1').trim()));
+    const validRows = rows.filter(row => row[1] && row[1].trim() !== '');
 
-    async function loadChartData() {
-        const res = await fetch(DATA_URL);
-        const text = await res.text();
-        const rows = text.split('\n').slice(1).map(row => row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"(.*)"$/, '$1').trim()));
-        const validRows = rows.filter(row => row[1] && row[1].trim() !== '');
+    const stats = { dist: {}, status: {}, net: {}, vendor: {}, purpose: {} };
+    let totalCompleted = 0; 
+    let grandStats = { ptz: 0, fix: 0, fish: 0 }; 
 
-        const stats = { dist: {}, status: {}, net: {}, vendor: {}, purpose: {} };
-        let totalCompleted = 0; // 준공 총계
+    // --- [순서 변경] 1. 데이터를 먼저 모두 집계합니다 ---
+    validRows.forEach(row => {
+        // 인덱스: h(6), c(2), aa(22), v(17), af(24), cameraType(10)
+        const [h, c, aa, v, af, cameraType] = [row[6], row[2], row[22], row[17], row[24], row[10]];
+        
+        if(c === '준공' && h) {
+            // 구별 데이터 초기화
+            if (!stats.dist[h]) {
+                stats.dist[h] = { total: 0, ptz: 0, fix: 0, fish: 0 };
+            }
+            
+            stats.dist[h].total++;
+            totalCompleted++;
 
-     validRows.forEach(row => {
-    // 인덱스 설정: h(행정구역), c(준공구분), aa(통신사), v(제조사), af(목적)
-    // [추가] cameraType: 카메라 형태(회전/고정/어안)가 적힌 열 인덱스를 확인 후 입력하세요 (예: row[10])
-    const [h, c, aa, v, af, cameraType] = [row[6], row[2], row[22], row[17], row[24], row[10]];
+            // [수정] 전체 합계(grandStats)와 구별 합계(stats.dist)를 동시에 계산
+            if (cameraType) {
+                if (cameraType.includes('회전')) {
+                    stats.dist[h].ptz++;
+                    grandStats.ptz++;
+                } else if (cameraType.includes('고정')) {
+                    stats.dist[h].fix++;
+                    grandStats.fix++;
+                } else if (cameraType.includes('어안')) {
+                    stats.dist[h].fish++;
+                    grandStats.fish++;
+                }
+            }
+        }
+        
+        if(c) stats.status[c] = (stats.status[c]||0)+1;
+        if(aa) stats.net[aa] = (stats.net[aa]||0)+1;
+        if(v) stats.vendor[v] = (stats.vendor[v]||0)+1;
+        if(af) stats.purpose[af] = (stats.purpose[af]||0)+1;
+    });
+
+    // --- [순서 변경] 2. 데이터 집계가 끝난 후 화면을 업데이트합니다 ---
     
-    // 1. 행정구역별 상세 수량 집계 (준공 기준)
-    if(c === '준공' && h) {
-        // 해당 구의 데이터 객체가 없으면 초기화 (숫자가 아닌 객체로 생성)
-        if (!stats.dist[h]) {
-            stats.dist[h] = { total: 0, ptz: 0, fix: 0, fish: 0 };
-        }
-        
-        stats.dist[h].total++; // 총계 증가
+    // 메인 총계 업데이트
+    const elTotal = document.getElementById('totalCnt');
+    if(elTotal) elTotal.innerText = totalCompleted.toLocaleString();
 
-        // 카메라 형태별 상세 수량 증가 (시트 텍스트 기준)
-        if (cameraType) {
-            if (cameraType.includes('회전')) stats.dist[h].ptz++;
-            else if (cameraType.includes('고정')) stats.dist[h].fix++;
-            else if (cameraType.includes('어안')) stats.dist[h].fish++;
-        }
-        
-        totalCompleted++;
+    // 메인 툴팁 상세 숫자 업데이트
+    if(document.getElementById('grandPtz')) document.getElementById('grandPtz').innerText = grandStats.ptz.toLocaleString() + "대";
+    if(document.getElementById('grandFix')) document.getElementById('grandFix').innerText = grandStats.fix.toLocaleString() + "대";
+    if(document.getElementById('grandFish')) document.getElementById('grandFish').innerText = grandStats.fish.toLocaleString() + "대";
+
+    // 3. 지도 업데이트 (이 코드가 아래에 있어야 지도가 그려집니다)
+    const mapOverlay = document.getElementById('mapOverlay');
+    if(mapOverlay) {
+        mapOverlay.innerHTML = GU_CONFIG.map(g => {
+            const d = stats.dist[g.name] || { total: 0, ptz: 0, fix: 0, fish: 0 };
+            return `
+                <div class="map-tag" style="top:${g.top}; left:${g.left};">
+                    <div class="map-tooltip">
+                        <strong style="color:var(--accent);">${g.name} 상세</strong><br>
+                        회전: ${d.ptz} / 고정: ${d.fix} / 어안: ${d.fish}
+                    </div>
+                    <div class="tag-count ${g.class}">${d.total.toLocaleString()}</div>
+                </div>`;
+        }).join('');
     }
-    
-    // 2. 기존 기타 통계 유지
-    if(c) stats.status[c] = (stats.status[c]||0)+1;
-    if(aa) stats.net[aa] = (stats.net[aa]||0)+1;
-    if(v) stats.vendor[v] = (stats.vendor[v]||0)+1;
-    if(af) stats.purpose[af] = (stats.purpose[af]||0)+1;
-});
+
+    // 4. 차트 렌더링 코드들 (기존 유지)
+    // renderPieChart('netChart', stats.net, ...); 등등
+
 
         // 지도 태그 업데이트 (준공 기준 수량)
         document.getElementById('mapOverlay').innerHTML = GU_CONFIG.map(g => {
