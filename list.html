@@ -2,128 +2,137 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>CCTV 관제 센터 - 통합 리스트</title>
+    <title>CCTV 관제 센터 - 통합 리스트 (Dark)</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        :root { --primary: #1a5276; --bg: #f4f7f9; --border: #dee2e6; --accent: #e67e22; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Malgun Gothic', sans-serif; background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+        /* [테마 설정] 전체 블랙 & 다크그레이 톤 */
+        :root { 
+            --primary: #3498db; 
+            --bg-main: #0f1216; /* 메인 배경 */
+            --bg-sidebar: #1a1d23; /* 사이드바 배경 */
+            --bg-card: #252a31; /* 카드/입력창 배경 */
+            --text-main: #e0e6ed; /* 기본 글자색 */
+            --text-muted: #94a3b8; /* 흐린 글자색 */
+            --border: #334155; /* 테두리 */
+            --accent: #f39c12; /* 강조색 (오렌지) */
+            --row-hover: #2d3748; /* 테이블 호버 */
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Malgun Gothic', sans-serif; background: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; overflow: hidden; }
         
-        header { height: 55px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1000; position: relative; }
-        header h1 { font-size: 18px; margin: 0; }
-        .home-btn { position: absolute; left: 15px; width: 36px; height: 36px; background: rgba(255,255,255,0.15); border-radius: 6px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; }
+        /* 헤더 */
+        header { height: 60px; background: #000; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+        header h1 { font-size: 19px; margin: 0; letter-spacing: 1px; }
+        .home-btn { position: absolute; left: 15px; width: 38px; height: 38px; background: #222; border: 1px solid #444; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; transition: 0.2s; }
+        .home-btn:hover { background: var(--primary); }
 
         .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-        .sidebar { width: 280px; background: white; padding: 15px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; overflow-y: auto; transition: 0.3s; box-sizing: border-box; }
-        .sidebar.hidden { margin-left: -280px; }
+        /* 사이드바 */
+        .sidebar { width: 300px; background: var(--bg-sidebar); padding: 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; flex-shrink: 0; overflow-y: auto; box-sizing: border-box; }
+        .sidebar.hidden { margin-left: -300px; }
 
         .toggle-btn {
-            position: absolute; left: 280px; top: 50%; transform: translateY(-50%);
-            width: 20px; height: 50px; background: var(--primary); color: white;
+            position: absolute; left: 300px; top: 50%; transform: translateY(-50%);
+            width: 22px; height: 60px; background: var(--bg-sidebar); color: var(--text-main);
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border-radius: 0 8px 8px 0; z-index: 1001; transition: 0.3s; font-size: 12px;
+            cursor: pointer; border-radius: 0 10px 10px 0; z-index: 1001; border: 1px solid var(--border); border-left: none; transition: 0.3s;
         }
         .sidebar.hidden + .toggle-btn { left: 0; }
 
-        /* 검색창 그룹 가로 배치 및 버튼 색상 수정 */
-        .search-group { display: flex; gap: 6px; margin-bottom: 5px; }
-        .search-input { flex: 1; padding: 10px; border: 2px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; min-width: 0; }
-        
-        .search-btn { 
-            padding: 0 15px; 
-            background: var(--primary); /* 헤더 색상과 동일 */
-            color: white; 
-            border: none; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            white-space: nowrap; 
-            transition: background 0.2s;
-        }
-        .search-btn:hover {
-            background: #154360; /* 마우스 올렸을 때 약간 더 진하게 */
-        }
+        /* 입력창 & 버튼 */
+        .search-group { display: flex; gap: 6px; }
+        .search-input { flex: 1; padding: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: white; font-size: 14px; outline: none; }
+        .search-btn { padding: 0 15px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        .filter-tabs { display: flex; gap: 4px; margin-bottom: 5px; }
-        .tab-btn { flex: 1; padding: 8px 0; border: 1px solid var(--border); background: #f8f9fa; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        /* 탭 버튼 */
+        .filter-tabs { display: flex; gap: 5px; }
+        .tab-btn { flex: 1; padding: 10px 0; border: 1px solid var(--border); background: #222; color: #aaa; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s; }
         .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
+        /* 지역별 현황 카드 */
         .stat-card { 
-            background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 8px; 
-            cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; font-size: 13px;
+            background: var(--bg-card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; 
+            cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; font-size: 14px;
         }
-        .stat-card:hover { background: #eef2f5; }
-        .stat-card.active { background: #d4e6f1; border-color: var(--primary); font-weight: bold; }
+        .stat-card:hover { border-color: var(--primary); }
+        .stat-card.active { background: #1e3a8a; border-color: var(--primary); }
         .stat-card .count { font-weight: bold; color: var(--accent); }
 
-        .content-area { flex: 1; display: flex; flex-direction: column; background: white; overflow: hidden; }
-        .table-wrapper { flex: 1; overflow: auto; border: 1px solid var(--border); }
-        table { border-collapse: collapse; font-size: 13px; white-space: nowrap; width: max-content; }
-        thead { position: sticky; top: 0; background: #f8f9fa; z-index: 20; }
-        th { padding: 10px 15px; border: 1px solid var(--border); background: #f1f4f7; text-align: left; }
-        td { padding: 8px 15px; border: 1px solid #eee; color: #444; }
-        tr:nth-child(even) { background: #fafafa; }
-        tr:hover { background: #f1f7ff; }
+        /* 권역별 합계표 (좌측 하단) */
+        .regional-status-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; background: #111; border: 1px solid var(--border); }
+        .regional-status-table th { background: #222; padding: 8px; border: 1px solid var(--border); color: var(--text-muted); }
+        .regional-status-table td { padding: 8px; border: 1px solid var(--border); text-align: center; }
+        .regional-status-table .label-col { text-align: left; background: #1a1a1a; font-weight: bold; padding-left: 10px; color: #ccc; }
 
-        .filter-select { display: block; width: 100%; margin-top: 5px; font-size: 11px; }
+        /* 메인 콘텐츠(테이블) 영역 */
+        .content-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); overflow: hidden; }
+        .table-wrapper { flex: 1; overflow: auto; border: 1px solid var(--border); margin: 10px; border-radius: 8px; background: #161a1f; }
         
-        .pagination-bar { height: 45px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 15px; background: #fff; flex-shrink: 0; }
-        .page-btn { padding: 4px 12px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 4px; font-size: 12px; }
-        /* list.html 스타일 태그 맨 아래 추가 */
-@media screen and (max-width: 768px) {
-    /* 테이블이 너무 넓으면 가로 스크롤이 생기도록 설정 */
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
+        table { border-collapse: collapse; font-size: 13px; white-space: nowrap; width: max-content; }
+        thead { position: sticky; top: 0; background: #1f2937; z-index: 20; }
+        th { padding: 12px 15px; border: 1px solid var(--border); color: #cbd5e1; font-weight: 600; text-align: left; }
+        td { padding: 10px 15px; border: 1px solid #2d3748; color: #cbd5e1; }
+        tr:nth-child(even) { background: #1a1f26; }
+        tr:hover { background: var(--row-hover); }
 
-    table {
-        min-width: 600px; /* 테이블이 너무 찌그러지지 않게 최소 너비 유지 */
-        font-size: 13px;
-    }
+        /* 테이블 내 드롭다운 필터 */
+        .filter-select { display: block; width: 100%; margin-top: 5px; background: #0f172a; border: 1px solid #475569; color: #3498db; font-size: 11px; border-radius: 4px; padding: 2px; }
 
-    /* 검색창 영역 세로 배치 */
-    .search-area {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+        /* 하단 페이지네이션 */
+        .pagination-bar { height: 50px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 20px; background: #000; }
+        .page-btn { padding: 6px 16px; cursor: pointer; border: 1px solid #444; background: #222; color: white; border-radius: 6px; font-size: 13px; }
+        .page-btn:disabled { opacity: 0.3; cursor: default; }
 
-    .search-area input, .search-area button {
-        width: 100%;
-        height: 45px; /* 터치하기 편하게 높이 키움 */
-    }
-}
+        #status-box { font-size: 12px; color: var(--text-muted); margin-top: auto; padding-top: 10px; border-top: 1px dashed #444; }
+
+        /* 스크롤바 디자인 */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f1216; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body>
 
 <header>
     <a href="index.html" class="home-btn">🏠</a>
-    <h1>화성특례시 방범CCTV 통합 자산 리스트</h1>
+    <h1>방범CCTV 통합 자산 리스트</h1>
 </header>
 
 <div class="main-container">
     <div class="sidebar" id="sidebar">
-        <label style="font-weight:bold; font-size:14px; color:var(--primary);">🔍 통합 검색</label>
+        <label style="font-weight:bold; font-size:14px; color:var(--primary);">🔍 검색 및 필터</label>
         <div class="search-group">
             <input type="text" id="searchInput" class="search-input" placeholder="검색어 입력..." onkeypress="if(event.keyCode==13) resetAndFilter()">
             <button class="search-btn" onclick="resetAndFilter()">검색</button>
         </div>
 
-        <label style="font-weight:bold; font-size:14px; color:var(--primary); margin-top:5px;">🚧 준공 구분</label>
         <div class="filter-tabs">
             <button class="tab-btn active" onclick="filterByStatus('전체', this)">전체</button>
             <button class="tab-btn" onclick="filterByStatus('준공', this)">준공</button>
             <button class="tab-btn" onclick="filterByStatus('미준공', this)">미준공</button>
         </div>
         
-        <hr style="width:100%; border:0; border-top:1px solid #eee;">
+        <hr style="width:100%; border:0; border-top:1px solid #333;">
         
-        <label style="font-weight:bold; font-size:14px; color:var(--primary);">📍 지역별 현황<카메라수량></label>
-        <div id="district-stats" style="display:flex; flex-direction:column; gap:6px;"></div>
+        <label style="font-weight:bold; font-size:14px; color:var(--primary);">📍 지역별 현황</label>
+        <div id="district-stats" style="display:flex; flex-direction:column; gap:8px;"></div>
 
-        <div id="status-box" style="font-size: 12px; color: #666; margin-top: auto; padding-top: 10px;">데이터 로딩 중...</div>
+        <div style="margin-top: 10px;">
+            <label style="font-weight:bold; font-size:13px; color:var(--accent);">📊 동/서 구분</label>
+            <table class="regional-status-table">
+                <thead>
+                    <tr><th style="width:40%">항목</th><th>동부</th><th>서부</th></tr>
+                </thead>
+                <tbody id="regionalTableBody">
+                    <tr><td colspan="3">데이터 분석 중...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="status-box">데이터 로딩 중...</div>
     </div>
 
     <div class="toggle-btn" id="toggleBtn" onclick="toggleSidebar()">◀</div>
@@ -138,7 +147,7 @@
         
         <div class="pagination-bar">
             <button class="page-btn" id="prevBtn" onclick="changePage(-1)">이전</button>
-            <span id="pageInfo" style="font-size:13px; font-weight:bold;">1 / 1</span>
+            <span id="pageInfo" style="font-size:14px; font-weight:bold; color:var(--primary);">1 / 1</span>
             <button class="page-btn" id="nextBtn" onclick="changePage(1)">다음</button>
         </div>
     </div>
@@ -153,9 +162,8 @@
     let filteredRows = [];
     let selectedDistrict = '전체';
     let selectedStatus = '전체';
-    
     let currentPage = 1;
-    const rowsPerPage = 1000;
+    const rowsPerPage = 500; // 다크모드 성능을 위해 페이지당 행 조절
 
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -165,7 +173,8 @@
     }
 
     async function fetchData() {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
+        // 캐시 방지 파라미터 추가
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&t=${new Date().getTime()}`;
         try {
             const res = await fetch(url);
             const text = await res.text();
@@ -175,7 +184,13 @@
             
             createFilterHeader();
             applyFilters(); 
-        } catch (e) { console.error(e); }
+            
+            const now = new Date();
+            document.getElementById('status-box').innerText = `동기화 완료: ${now.getHours()}:${now.getMinutes()} (총 ${allRows.length}건)`;
+        } catch (e) { 
+            console.error(e);
+            document.getElementById('status-box').innerText = "❌ 시트 연결 실패";
+        }
     }
 
     function parseCSV(csv) {
@@ -184,7 +199,53 @@
         );
     }
 
-    // 필터링된 기반 데이터로 지역 통계 업데이트 (공사상태/검색어 반영됨)
+    function updateRegionalTable(rowsToSum) {
+        const result = {
+            east: { siteCount: 0, totalCam: 0, aiCamCount: 0 },
+            west: { siteCount: 0, totalCam: 0, aiCamCount: 0 }
+        };
+
+        const idxB = 1;  const idxE = 5;  const idxV = 21; 
+
+        rowsToSum.forEach(row => {
+            const regionStr = String(row[idxE] || "").replace(/\s/g, "");
+            const rawB = String(row[idxB] || "").trim();
+            const bNumbers = rawB.replace(/[^0-9]/g, ""); 
+            const valV = String(row[idxV] || "").trim();
+            const isAICamera = (valV === "0"); // V열이 '0'이면 AI카메라가 있는 개소
+
+            let target = null;
+            if (regionStr.includes("동부")) target = result.east;
+            else if (regionStr.includes("서부")) target = result.west;
+
+            if (target) {
+                if (bNumbers.length > 0) {
+                    target.siteCount++;
+                    target.totalCam += parseInt(bNumbers) || 0;
+                }
+                if (isAICamera) target.aiCamCount++;
+            }
+        });
+
+        document.getElementById('regionalTableBody').innerHTML = `
+            <tr>
+                <td class="label-col">개소 수</td>
+                <td style="font-weight:bold;">${result.east.siteCount.toLocaleString()}</td>
+                <td style="font-weight:bold;">${result.west.siteCount.toLocaleString()}</td>
+            </tr>
+            <tr>
+                <td class="label-col">카메라 수</td>
+                <td style="color:var(--primary); font-weight:bold;">${result.east.totalCam.toLocaleString()}</td>
+                <td style="color:var(--primary); font-weight:bold;">${result.west.totalCam.toLocaleString()}</td>
+            </tr>
+            <tr>
+                <td class="label-col">AI카메라</td>
+                <td style="color:var(--accent); font-weight:bold;">${result.east.aiCamCount.toLocaleString()}</td>
+                <td style="color:var(--accent); font-weight:bold;">${result.west.aiCamCount.toLocaleString()}</td>
+            </tr>
+        `;
+    }
+
     function updateDistrictStats(currentBaseData) {
         const idxDistrict = 6; 
         const stats = { '전체': currentBaseData.length };
@@ -232,10 +293,9 @@
         const selects = document.querySelectorAll('.filter-select');
         const activeFilters = Array.from(selects).map(s => ({ index: s.dataset.index, value: s.value })).filter(f => f.value !== "");
         
-        const idxStatus = 2;   
+        const idxStatus = 2; 
         const idxDistrict = 6; 
 
-        // 1. 공사상태 + 검색어 + 열필터로 1차 필터링
         const baseFiltered = allRows.filter(row => {
             const matchesStatus = (selectedStatus === '전체') || (row[idxStatus] === selectedStatus);
             const matchesSearch = row.some(cell => String(cell).toLowerCase().includes(searchTerm));
@@ -243,14 +303,13 @@
             return matchesStatus && matchesSearch && matchesFilters;
         });
 
-        // 2. 1차 결과를 바탕으로 통계 수치 갱신
         updateDistrictStats(baseFiltered);
 
-        // 3. 지역 선택까지 포함하여 최종 데이터 산출
         filteredRows = baseFiltered.filter(row => {
             return (selectedDistrict === '전체') || (row[idxDistrict] === selectedDistrict);
         });
 
+        updateRegionalTable(filteredRows);
         updateDisplay();
     }
 
@@ -260,7 +319,6 @@
         document.getElementById('pageInfo').innerText = `${currentPage} / ${totalPages}`;
         document.getElementById('prevBtn').disabled = currentPage === 1;
         document.getElementById('nextBtn').disabled = currentPage === totalPages;
-        document.getElementById('status-box').innerText = `결과: ${filteredRows.length.toLocaleString()}건`;
     }
 
     function renderTable() {
