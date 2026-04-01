@@ -6,20 +6,11 @@
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d6ac13dbec76f46fd8d06ff83c394a5f&libraries=services"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin:0; padding:0; height:100vh; display:flex; flex-direction:column; font-family: 'Malgun Gothic', sans-serif; overflow: hidden; }
+        body { margin:0; padding:0; height:100vh; display:flex; flex-direction:column; font-family: 'Malgun Gothic', sans-serif; overflow: hidden; background: #111; color: #eee; }
         /* 기존 header 설정을 아래 내용으로 교체하거나 덮어쓰세요 */
 header { 
-    height:60px; 
-    background:#1a5276; 
-    color:white; 
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-    font-size:22px; 
-    font-weight:700; 
-    position:relative; 
-    z-index: 1000; 
-    flex-shrink: 0; 
+    height:60px; background:#000; color:white; display:flex; align-items:center; justify-content:center; 
+    font-size:22px; font-weight:700; position:relative; z-index: 1000; flex-shrink: 0; border-bottom: 1px solid #333;
 }
 
 /* 새로 추가되는 홈 버튼 디자인 */
@@ -30,77 +21,67 @@ header {
     align-items:center; 
 }
 
-.home-btn { 
-    background: rgba(255,255,255,0.15); 
-    border: 1px solid rgba(255,255,255,0.4); 
-    color: white; 
-    padding: 6px 14px; 
-    border-radius: 6px; 
-    cursor: pointer; 
-    font-size: 14px; 
-    text-decoration: none; 
-    font-weight: normal; 
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-}
+.home-btn, #editBtn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; }
+.home-btn:hover, #editBtn:hover { background: rgba(255,255,255,0.2); }
 
-.home-btn:hover { 
-    background: rgba(255,255,255,0.3); 
-    border-color: white;
-}
-        
-        #main-container { display:flex; flex:1; position:relative; overflow:hidden; width: 100%; }
+        #main-container { background-color: #1a1a1a; display:flex; flex:1; position:relative; overflow:hidden; width: 100%; }
         
         /* 사이드바 */
         #sidebar { 
-            width: 300px; background: #f4f6f8; border-right: 1px solid #ccc; 
+            width: 300px; background: #1a1a1a; border-right: 1px solid #333; 
             display: flex; flex-direction: column; z-index: 500; flex-shrink: 0; 
             transition: all 0.3s ease; position: relative;
         }
         #sidebar.collapsed { margin-left: -300px; }
         #sidebarToggle {
             position: absolute; right: -30px; top: 70px; width: 30px; height: 60px; 
-            background: #1a5276; color: white; border: none; cursor: pointer; 
+            background: #333; color: white; border: none; cursor: pointer; 
             border-radius: 0 5px 5px 0; z-index: 1001; font-size: 18px;
         }
 
         /* 대시보드 및 준공 필터 버튼 */
-        .dashboard { padding: 10px; background: #fff; border-bottom: 2px solid #1a5276; flex-shrink: 0; }
+        .dashboard { padding: 10px; background: #222; border-bottom: 2px solid #444; flex-shrink: 0; }
         .filter-group { display: flex; gap: 5px; margin-bottom: 10px; }
-        .filter-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; background: #fff; }
-        .filter-btn.active-all { background: #34495e; color: white; border-color: #34495e; }
-        .filter-btn.active-done { background: #1a73e8; color: white; border-color: #1a73e8; }
-        .filter-btn.active-yet { background: #e74c3c; color: white; border-color: #e74c3c; }
+        .filter-btn { background: #333; flex: 1; padding: 8px; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; color: #999; }
+        .filter-btn.active-all { background: #444; color: white; }
+        .filter-btn.active-done { background: #1a73e8; color: white;  }
+        .filter-btn.active-yet { background: #d93025; color: white; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 5px; }
-        .stat-card {
-    /* 기존 스타일 유지하면서 폰트 설정 추가 */
-    background: #f8f9fa; 
+    .stat-card {
+    /* [구조 유지] 패딩, 라운드, 정렬은 그대로 */
     padding: 10px 5px; 
     border-radius: 4px; 
     text-align: center; 
-    border: 1px solid #ddd;
 
-    /* 필터 버튼(.filter-btn)과 동일한 폰트 스타일 적용 */
-    font-size: 13px !important;    /* 버튼 글자 크기와 통일 */
-    font-weight: bold !important;  /* 버튼처럼 두껍게 */
-    color: #333 !important;        /* 진한 회색/검정 계열 */
+    /* [색상 변경] 블랙 테마 최적화 */
+    background: #2a2a2a;         /* 어두운 회색 배경 */
+    border: 1px solid #444;      /* 경계선도 어둡게 하여 대비 조절 */
+
+    /* [폰트 설정] 필터 버튼과 통일감 유지 */
+    font-size: 13px !important; 
+    font-weight: bold !important; 
+    color: #bbb !important;      /* 너무 하얀색보다는 눈이 편한 연회색 */
 }
-        .stat-card b { font-size: 16px; color: #1a5276; display: block; margin-top: 3px; }
+
+.stat-card b { 
+    font-size: 16px; 
+    color: #58a6ff;              /* 숫자는 포인트 컬러(밝은 파랑)로 강조 */
+    display: block; 
+    margin-top: 3px; 
+}
         
         /* 메뉴 */
-        .menu-item { border-bottom: 1px solid #ddd; background: white; }
-        .menu-btn { width: 100%; padding: 12px; text-align: left; background: #fff; border: none; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
-        .menu-content { display: none; padding: 10px; background: #fff; }
+        .menu-item { border-bottom: 1px solid #333; background: #1a1a1a; }
+        .menu-btn { width: 100%; padding: 12px; text-align: left; background: #1a1a1a; border: none; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; color:#efefef;}
+        .menu-content { display: none; padding: 10px; background: #111; }
         .menu-content.show { display: block; }
         .search-box { display: flex; gap: 5px; margin-bottom: 8px; }
-        .search-box input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
-        .search-box button { padding: 0 10px; background: #1a5276; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .search-box input { background:#1a1a1a; color:#efefef; flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .search-box button { background:#444; padding: 0 10px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .results-container { max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
-        .list-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 13px; line-height: 1.4; }
-        .list-item:hover { background: #f0f7ff; }
+        .list-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; font-size: 13px; line-height: 1.4; color:#ccc;}
+        .list-item:hover { background: #252525; }
 
         /* 지도 및 로드뷰 */
         #view-area { display: flex; flex: 1; position: relative; flex-direction: row; }
@@ -109,7 +90,7 @@ header {
         #roadview { width: 100%; height: 100%; }
 
         /* 버튼류 */
-        .my-location-btn { position:absolute; bottom:20px; right:20px; z-index:100; background:white; border:2px solid #1a5276; border-radius:50%; width:45px; height:45px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .my-location-btn { position:absolute; bottom:20px; right:20px; z-index:100; background:#2a2a2a; border:2px solid #1a5276; border-radius:50%; width:45px; height:45px; cursor:pointer; font-size:20px; display:flex; align-items:center; justify-content:center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
         .rv-toggle { position:absolute; top:10px; right:120px; z-index:100; }
         .top-right { position:absolute; top:10px; right:10px; z-index:100; display:flex; flex-direction:column; background: white; border-radius:4px; border:1px solid #919191; }
         .custom-btn { background:white; border:1px solid #919191; cursor:pointer; padding:8px 12px; font-size:12px; border-radius: 4px; white-space: nowrap; }
@@ -132,12 +113,12 @@ header {
 /* 2. 우리 디자인 박스 (.info-wrap) 위치 재설정 */
 .info-wrap {
     width: 400px !important; 
-    background: #ffffff;
-    border: 1px solid #1a5276;
+    background: #1a1a1a;
+    border: 1px solid #444;
     display: flex;
     flex-direction: column;
     border-radius: 0 !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     
     /* [핵심 수정] 위로 튀어나오는 현상 방지 */
     position: relative;
@@ -158,7 +139,7 @@ header {
 
 /* 1. 헤더: 내부 요소들을 가로(수평)로 배치 */
 .info-header {
-    background: #1a5276 !important;
+    background: #000 !important;
     padding: 10px 15px !important;
     
     display: flex !important;       /* ★ 가로 배치를 위한 필수 설정 */
@@ -259,11 +240,10 @@ header {
     }
 
     /* 사이드바가 지도를 가리지 않게 조정 */
-    #sidebar { 
-        position: absolute; 
-        height: 100%; 
-        z-index: 1002;
-    }
+   #sidebar { 
+    width: 300px; background: #1a1a1a; border-right: 1px solid #444; 
+    display: flex; flex-direction: column; z-index: 500; flex-shrink: 0; transition: all 0.3s ease; position: relative;
+}
 }
 
        #regionList {
@@ -279,20 +259,20 @@ header {
     display: flex;
     justify-content: space-between;
     padding: 12px 10px;
-    background: #fff;
-    border-bottom: 1px solid #eee;
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
     cursor: pointer;
     font-size: 13px !important;
     font-weight: bold !important;
-    color: #1a5276;
-}
+    color: #58a6ff;
+    }
 
 .gu-header-row:hover { background: #f8f9fa; }
 
 /* 3. 동 리스트 컨테이너 (기본 숨김) */
 .dong-container {
     display: none; 
-    background: #fcfcfc;
+    background: #111;
 }
 
 /* 4. 활성화(active) 되었을 때만 동 리스트 표시 */
@@ -309,8 +289,8 @@ header {
 .dong-item {
     padding: 8px 20px;
     font-size: 12px;
-    color: #666;
-    border-bottom: 1px dashed #f0f0f0;
+    color: #888;
+    border-bottom: 1px dashed #222;
     cursor: pointer;
 }
 
@@ -347,14 +327,14 @@ header {
 /* 지도/스카이뷰 전환 */
 .top-right-controls { 
     position: absolute; top: 15px; right: 15px; z-index: 100; 
-    display: flex; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px);
-    border-radius: 8px; border: 1px solid #919191; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: flex; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+    border-radius: 8px; border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     overflow: hidden;
 }
 .map-type-btn { 
-    padding: 8px 15px; font-size: 13px; font-weight: bold; cursor: pointer; border: none; background: none; 
+    padding: 8px 15px; font-size: 13px; font-weight: bold; cursor: pointer; border: none; background: none; color: white !important;
 }
-.map-type-btn.active { background: #1a5276; color: white; }
+.map-type-btn.active { background: #1a73e8; color: white; }
 
 /* 확대/축소/로드뷰 세로 컨트롤 */
 .zoom-controls { 
@@ -365,7 +345,7 @@ header {
 }
 .zoom-btn { 
     height: 40px; display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; font-size: 18px; font-weight: bold; border-bottom: 1px solid #eee;
+    cursor: pointer; font-size: 18px; font-weight: bold; border-bottom: 1px solid #eee; color: white !important;
 }
 .zoom-btn:last-child { border: none; }
 .zoom-btn:hover { background: #f0f0f0; color: #1a5276; }
@@ -373,7 +353,7 @@ header {
 /* --- 로드뷰 스타일 업그레이드 --- */
 #rvBtn {
     height: 42px !important; /* 높이를 충분히 확보 */
-    background-color: white !important;
+    background-color: #444 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -408,7 +388,7 @@ header {
 .zoom-controls { 
     position: absolute; top: 65px; right: 15px; z-index: 100; 
     width: 40px; 
-    background: rgba(255,255,255,0.9); 
+    background: #444; 
     backdrop-filter: blur(5px);
     border-radius: 8px; /* 전체 박스의 둥근 모서리 */
     border: 1px solid #919191; 
@@ -468,7 +448,7 @@ header {
         /* 지도를 너무 많이 가리지 않도록 전체 높이의 40% 정도만 차지 */
         height: 45vh !important; 
         z-index: 2000 !important;
-        background: #f4f6f8 !important;
+        background: #111 !important;
         border-right: none !important;
         border-top: 3px solid #1a5276 !important;
         transition: transform 0.3s ease !important;
@@ -477,6 +457,24 @@ header {
         overflow-y: auto !important; 
         overflow-x: hidden !important;
         margin-left: 0 !important;
+    }
+/* 1. 사이드바가 열려있을 때 버튼을 사이드바 위로 올림 */
+    .my-location-btn {
+        /* 사이드바 높이가 45vh이므로, 그보다 높은 47vh~50vh 지점에 고정 */
+        bottom: calc(45vh + 20px) !important; 
+        right: 15px !important;
+        transition: bottom 0.3s ease; /* 사이드바 열릴 때 같이 부드럽게 이동 */
+        
+        /* 블랙 테마 가시성 강화 */
+        background: #2a2a2a !important;
+        border: 2px solid #58a6ff !important;
+        color: #58a6ff !important;
+    }
+
+    /* 2. 사이드바가 접혔을(collapsed) 때 버튼도 다시 아래로 내려옴 */
+    #sidebar.collapsed ~ #view-area .my-location-btn,
+    #sidebar.collapsed + #view-area .my-location-btn {
+        bottom: 60px !important; /* 사이드바 접힘 버튼 높이(40px)보다 살짝 위 */
     }
 
     /* 2. 사이드바가 접혔을 때: 화면 아래로 쏙 내려가기 */
@@ -569,7 +567,7 @@ header {
         </a>
     </div>
 
-    화성특례시 방범CCTV 설치현황
+    방범CCTV 위치정보 시스템
 
     <div class="header-right">
         <button id="editBtn" class="custom-btn" onclick="toggleEditMode()">
