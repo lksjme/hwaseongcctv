@@ -40,7 +40,7 @@ header {
         #main-container { background-color: #1a1a1a; display:flex; flex:1; position:relative; overflow:hidden; width: 100%; }
         
         /* 사이드바 */
-        #sidebar { 
+       #sidebar { 
     width: 300px; 
     background-color: var(--bg-sidebar) !important; 
     
@@ -165,7 +165,8 @@ header {
 /* 2. 우리 디자인 박스 (.info-wrap) 위치 재설정 */
 .info-wrap {
     width: 400px !important; 
-    background: var(--bg-sidebar);
+    background: #1a1a1a;
+    border: 1px solid #444;
     display: flex;
     flex-direction: column;
     border-radius: 0 !important;
@@ -190,7 +191,7 @@ header {
 
 /* 1. 헤더: 내부 요소들을 가로(수평)로 배치 */
 .info-header {
-    background: var(--bg-sidebar) !important;
+    background: #000 !important;
     padding: 10px 15px !important;
     
     display: flex !important;       /* ★ 가로 배치를 위한 필수 설정 */
@@ -268,13 +269,10 @@ header {
 
        @media screen and (max-width: 1080px) {
     /* 전체 영역을 세로로 강제 정렬 */
-    @media screen and (max-width: 1080px) {
-    #view-area {
-        padding: 10px; /* 모바일은 화면이 좁으니 여백을 줄임 */
-        /* 사이드바 높이를 고려해 하단에 여백을 더 줌 */
-        padding-bottom: 50px; 
+    #view-area { 
+        flex-direction: column !important; 
+        height: 100% !important;
     }
-}
 
     /* 로드뷰가 열렸을 때 상단 50% 차지 */
     #roadview-container { 
