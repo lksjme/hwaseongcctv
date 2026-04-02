@@ -6,11 +6,24 @@
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d6ac13dbec76f46fd8d06ff83c394a5f&libraries=services"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin:0; padding:0; height:100vh; display:flex; flex-direction:column; font-family: 'Malgun Gothic', sans-serif; overflow: hidden; background: #111; color: #eee; }
+  /* [테마 설정] 전체 블랙 & 다크그레이 톤 */
+        :root { 
+            --primary: #3498db; 
+            --bg-main: #0f1216; /* 메인 배경 */
+            --bg-sidebar: #1a1d23; /* 사이드바 배경 */
+            --bg-card: #252a31; /* 카드/입력창 배경 */
+            --text-main: #e0e6ed; /* 기본 글자색 */
+            --text-muted: #94a3b8; /* 흐린 글자색 */
+            --border: #334155; /* 테두리 */
+            --accent: #f39c12; /* 강조색 (오렌지) */
+            --row-hover: #2d3748; /* 테이블 호버 */
+        }
+
+        body { margin:0; padding:0; height:100vh; display:flex; flex-direction:column; font-family: 'Malgun Gothic', sans-serif; overflow: hidden; background-color: var(--bg-main); color: var(--text-main); }
         /* 기존 header 설정을 아래 내용으로 교체하거나 덮어쓰세요 */
 header { 
     height:60px; background:#000; color:white; display:flex; align-items:center; justify-content:center; 
-    font-size:22px; font-weight:700; position:relative; z-index: 1000; flex-shrink: 0; border-bottom: 1px solid #333;
+    font-size:22px; font-weight:700; position:relative; z-index: 1000; flex-shrink: 0; border-bottom: 1px solid var(--border);
 }
 
 /* 새로 추가되는 홈 버튼 디자인 */
@@ -21,31 +34,41 @@ header {
     align-items:center; 
 }
 
-.home-btn, #editBtn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; }
+.home-btn, #editBtn { left: 15px; width: 38px; height: 38px; background: #222; border: 1px solid #444; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; transition: 0.2s; }
 .home-btn:hover, #editBtn:hover { background: rgba(255,255,255,0.2); }
 
         #main-container { background-color: #1a1a1a; display:flex; flex:1; position:relative; overflow:hidden; width: 100%; }
         
         /* 사이드바 */
         #sidebar { 
-            width: 300px; background: #1a1a1a; border-right: 1px solid #333; 
-            display: flex; flex-direction: column; z-index: 500; flex-shrink: 0; 
-            transition: all 0.3s ease; position: relative;
-        }
+    width: 300px; 
+    background-color: var(--bg-sidebar) !important; 
+    
+    /* 1. 보더라인 색상 수정 (오타 boder -> border 교정) */
+    /* 만약 다른 특정 색상을 원하시면 var(--border) 대신 #3498db 같은 값을 직접 넣으셔도 됩니다. */
+    border-right: 1px solid var(--border) !important; 
+    
+    display: flex; 
+    flex-direction: column; 
+    z-index: 500; 
+    flex-shrink: 0; 
+    transition: all 0.3s ease; 
+    position: relative;
+}
         #sidebar.collapsed { margin-left: -300px; }
         #sidebarToggle {
-            position: absolute; right: -30px; top: 70px; width: 30px; height: 60px; 
-            background: #333; color: white; border: none; cursor: pointer; 
-            border-radius: 0 5px 5px 0; z-index: 1001; font-size: 18px;
+            position: absolute; right: -25px; top: 70px; width: 25px; height: 60px; 
+            background-color: var(--primary) ; color: white; border: var(--border); cursor: pointer; 
+            border-radius: 0 5px 5px 0; z-index: 1001; font-size: 13px;
         }
 
         /* 대시보드 및 준공 필터 버튼 */
-        .dashboard { padding: 10px; background: #222; border-bottom: 2px solid #444; flex-shrink: 0; }
+        .dashboard { padding: 10px; background-color: var(--bg-sidebar)!important; border-bottom: 2px solid var(--primary)!important; flex-shrink: 0; }
         .filter-group { display: flex; gap: 5px; margin-bottom: 10px; }
-        .filter-btn { background: #333; flex: 1; padding: 8px; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; color: #999; }
-        .filter-btn.active-all { background: #444; color: white; }
-        .filter-btn.active-done { background: #1a73e8; color: white;  }
-        .filter-btn.active-yet { background: #d93025; color: white; }
+        .filter-btn { background-color: var(--bg-sidebar); flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; color: #999; }
+        .filter-btn.active-all { background-color: var(--primary); color: white; }
+        .filter-btn.active-done { background-color: var(--primary); color: white;  }
+        .filter-btn.active-yet { background-color: var(--primary); color: white; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 5px; }
     .stat-card {
@@ -55,37 +78,66 @@ header {
     text-align: center; 
 
     /* [색상 변경] 블랙 테마 최적화 */
-    background: #2a2a2a;         /* 어두운 회색 배경 */
-    border: 1px solid #444;      /* 경계선도 어둡게 하여 대비 조절 */
+    background: var(--bg-card)!important;         /* 어두운 회색 배경 */
+    border: 1px solid var(--border)!important;      /* 경계선도 어둡게 하여 대비 조절 */
 
     /* [폰트 설정] 필터 버튼과 통일감 유지 */
     font-size: 13px !important; 
     font-weight: bold !important; 
-    color: #bbb !important;      /* 너무 하얀색보다는 눈이 편한 연회색 */
+    color: var(--text-muted) !important;      /* 너무 하얀색보다는 눈이 편한 연회색 */
 }
 
 .stat-card b { 
     font-size: 16px; 
-    color: #58a6ff;              /* 숫자는 포인트 컬러(밝은 파랑)로 강조 */
+    color: var(--primary)!important;              /* 숫자는 포인트 컬러(밝은 파랑)로 강조 */
     display: block; 
     margin-top: 3px; 
 }
         
         /* 메뉴 */
-        .menu-item { border-bottom: 1px solid #333; background: #1a1a1a; }
-        .menu-btn { width: 100%; padding: 12px; text-align: left; background: #1a1a1a; border: none; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; color:#efefef;}
-        .menu-content { display: none; padding: 10px; background: #111; }
+        .menu-item { border-bottom: 1px solid var(--border); background-color: var(--bg-sidebar); }
+        .menu-btn { width: 100%; padding: 12px; text-align: left; background-color: var(--bg-sidebar); border: none; font-size: 14px; font-weight: normal; cursor: pointer; display: flex; justify-content: space-between; color: var(--text-main);}
+        .menu-content { display: none; padding: 10px; background-color: var(--bg-sidebar); }
         .menu-content.show { display: block; }
         .search-box { display: flex; gap: 5px; margin-bottom: 8px; }
-        .search-box input { background:#1a1a1a; color:#efefef; flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
-        .search-box button { background:#444; padding: 0 10px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .results-container { max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; }
-        .list-item { padding: 12px; border-bottom: 1px solid #333; cursor: pointer; font-size: 13px; line-height: 1.4; color:#ccc;}
-        .list-item:hover { background: #252525; }
+        .search-box input { background-color: var(--bg-card); color: var(--text-muted); flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+        .search-box button { background-color: var(--primary); padding: 8px; color: var(--text-main); border: 1px solod var(--border); border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .results-container { max-height: 350px; overflow-y: auto; border-top: 1px solid var(--border); }
+        .list-item { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; line-height: 1.4; color:var(--text-main);}
+        .list-item:hover { background-color: var(--bg-sidebar); }
 
         /* 지도 및 로드뷰 */
-        #view-area { display: flex; flex: 1; position: relative; flex-direction: row; }
-        #map { flex: 1; position: relative; }
+       #view-area {
+    display: flex;
+    flex: 1;
+    position: relative;
+    background-color: var(--bg-main); /* 전체 바닥 배경색 */
+    padding: 15px; /* 지도가 테두리에서 떨어져 보이게 하는 여백 */
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* 2. 지도를 담는 둥근 프레임 */
+#map {
+    flex: 1;
+    width: 100% !important;
+    height: 100% !important;
+    
+    /* [둥근 사각형 설정] */
+    border-radius: 24px !important; 
+    
+    /* [테두리 및 프레임 색상] */
+    border: 1px solid var(--border) !important;
+    background-color: var(--bg-sidebar) !important; /* 지도 로딩 전 프레임 색상 */
+    
+    /* [떠 있는 그림자 효과] */
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    
+    /* 지도가 둥근 모서리를 뚫고 나오지 않게 함 */
+    overflow: hidden; 
+    position: relative;
+    z-index: 1;
+}
         #roadview-container { flex: 1; height: 100%; position: relative; display: none; border-left: 2px solid #333; }
         #roadview { width: 100%; height: 100%; }
 
@@ -113,8 +165,7 @@ header {
 /* 2. 우리 디자인 박스 (.info-wrap) 위치 재설정 */
 .info-wrap {
     width: 400px !important; 
-    background: #1a1a1a;
-    border: 1px solid #444;
+    background: var(--bg-sidebar);
     display: flex;
     flex-direction: column;
     border-radius: 0 !important;
@@ -139,7 +190,7 @@ header {
 
 /* 1. 헤더: 내부 요소들을 가로(수평)로 배치 */
 .info-header {
-    background: #000 !important;
+    background: var(--bg-sidebar) !important;
     padding: 10px 15px !important;
     
     display: flex !important;       /* ★ 가로 배치를 위한 필수 설정 */
@@ -217,10 +268,13 @@ header {
 
        @media screen and (max-width: 1080px) {
     /* 전체 영역을 세로로 강제 정렬 */
-    #view-area { 
-        flex-direction: column !important; 
-        height: 100% !important;
+    @media screen and (max-width: 1080px) {
+    #view-area {
+        padding: 10px; /* 모바일은 화면이 좁으니 여백을 줄임 */
+        /* 사이드바 높이를 고려해 하단에 여백을 더 줌 */
+        padding-bottom: 50px; 
     }
+}
 
     /* 로드뷰가 열렸을 때 상단 50% 차지 */
     #roadview-container { 
@@ -241,7 +295,7 @@ header {
 
     /* 사이드바가 지도를 가리지 않게 조정 */
    #sidebar { 
-    width: 300px; background: #1a1a1a; border-right: 1px solid #444; 
+    width: 300px; background-color: var(--bg-sidebar); border-right: 1px solid var(--bg-card); 
     display: flex; flex-direction: column; z-index: 500; flex-shrink: 0; transition: all 0.3s ease; position: relative;
 }
 }
@@ -448,9 +502,9 @@ header {
         /* 지도를 너무 많이 가리지 않도록 전체 높이의 40% 정도만 차지 */
         height: 45vh !important; 
         z-index: 2000 !important;
-        background: #111 !important;
+        background-color: var(--bg-sidebar) !important;
         border-right: none !important;
-        border-top: 3px solid #1a5276 !important;
+        border-top: 3px solid var(--bg-card) !important;
         transition: transform 0.3s ease !important;
         
         /* ★ 핵심: 내부 스크롤바 활성화 */
