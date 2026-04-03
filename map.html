@@ -5,6 +5,7 @@
     <title>화성특례시 방범CCTV 관리</title>
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=d6ac13dbec76f46fd8d06ff83c394a5f&libraries=services"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
   /* [테마 설정] 전체 블랙 & 다크그레이 톤 */
         :root { 
@@ -412,6 +413,87 @@ header {
 .zoom-btn:last-child { border: none; }
 .zoom-btn:hover { background: #f0f0f0; color: #1a5276; }
 .zoom-btn.active { background: #ffce00; border-radius: 8px; } /* 로드뷰 활성 시 노란색 */
+/* 반경 버튼 전용 스타일 (아이콘 색상 포인트) */
+/* 실시간 반경 정보창 */
+.radius-info {
+    background: rgba(0, 0, 0, 0.8);
+    color: #f39c12;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #f39c12;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none; /* 마우스 이벤트를 방해하지 않음 */
+}
+
+/* 고정된 반경 정보창 (닫기 버튼 포함) */
+.radius-info-final {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #252a31;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--primary);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* 닫기 버튼 스타일 */
+.radius-close-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0;
+}
+
+.radius-close-btn:hover {
+    background: #c0392b;
+}
+
+#radiusBtn i {
+    font-size: 16px; /* 카카오맵 버튼들과 크기 밸런스 조정 */
+    color: #faf8f8;    /* 기본 상태는 짙은 회색 */
+}
+
+/* 반경 모드 활성화 시 (오렌지색) */
+#radiusBtn.active {
+    background-color: #2bbbff !important; /* 카카오맵 느낌의 하늘색 */
+    border-color: #1a9edb !important;
+}
+#radiusBtn.active i {
+    color: white !important;
+}
+
+/* 반경 측정 활성화 시 상태 (강조색 사용) */
+#radiusBtn.active {
+    background-color: var(--accent) !important; /* 오렌지 계열 강조색 */
+    color: white !important;
+}
+
+#radiusBtn.active i {
+    color: white !important;
+}
+
+/* 기존 zoom-btn 보더라인 유지 확인 */
+.zoom-btn {
+    border-bottom: 1px solid var(--border) !important;
+}
+
+/* 가장 마지막 버튼(반경 버튼)의 하단 선은 제거 */
+.zoom-controls div:last-child {
+    border-bottom: none !important;
+}
 /* --- 로드뷰 스타일 업그레이드 --- */
 #rvBtn {
     height: 42px !important; /* 높이를 충분히 확보 */
@@ -618,6 +700,70 @@ header {
         background: #000; /* 빈틈 방지 */
     }
 }
+/* 사이드바 확장 버튼 컨테이너 */
+.sidebar-extension {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+}
+
+.kgeop-btn {
+    width: 100%;
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.kgeop-btn:hover {
+    background-color: var(--row-hover) !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-2px); /* 살짝 떠오르는 효과 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.btn-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* 아이콘 스타일 (강조색 사용) */
+.kgeop-btn i.fa-map-marked-alt {
+    font-size: 20px;
+    color: var(--accent) !important;
+}
+
+.text-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.main-text {
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.sub-text {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.external-icon {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.kgeop-btn:hover .main-text {
+    color: var(--primary);
+}
     </style>
 </head>
 <body>
@@ -687,6 +833,19 @@ header {
                 <div id="cctvResults" class="results-container"></div>
             </div>
         </div>
+        <div class="sidebar-extension">
+    <button class="kgeop-btn" onclick="window.open('https://kgeop.go.kr/info/infoMap.do', '_blank')">
+        <div class="btn-content">
+            <i class="fas fa-map-marked-alt"></i> 
+            <div class="text-group">
+                <span class="main-text">스마트국토정보</span>
+                <span class="sub-text">K-GeoP 바로가기</span>
+            </div>
+        </div>
+        <i class="fas fa-external-link-alt external-icon"></i>
+    </button>
+</div>
+
     </div>
 
  <div id="view-area">
@@ -723,11 +882,14 @@ header {
 </div>
     <div class="zoom-btn" onclick="map.setLevel(map.getLevel()-1)">+</div>
     <div class="zoom-btn" onclick="map.setLevel(map.getLevel()+1)">-</div>
+    <div id="radiusBtn" class="zoom-btn" onclick="toggleRadius()" title="반경 측정">
+    <i class="fa-solid fa-circle-dot"></i> </div>
 </div>
     </div>
 </div>
         
     </div>
+    
 </div>
 
 <script>
@@ -1396,6 +1558,144 @@ function resetMarkers() {
     if (btnRoad) btnRoad.classList.remove('active');
 
     updateDashboard(); // 마커 다시 뿌리기
+}
+let centerLatLng = null;
+let drawingCircle = null;
+let distanceOverlay = null;
+let isRadiusMode = false;
+let allCircles = []; // 그려진 모든 원과 오버레이를 담는 배열
+
+function toggleRadius() {
+    const radiusBtn = document.getElementById('radiusBtn');
+    isRadiusMode = !isRadiusMode;
+
+    if (isRadiusMode) {
+        radiusBtn.classList.add('active');
+        // 클릭 이벤트 등록
+        kakao.maps.event.addListener(map, 'click', startDrawing);
+    } else {
+        radiusBtn.classList.remove('active');
+        // 기능만 끄기 (마커 유지)
+        stopRadiusMode();
+    }
+}
+
+// 기능 종료 (새로고침 없이 이벤트만 제거)
+function stopRadiusMode() {
+    kakao.maps.event.removeListener(map, 'click', startDrawing);
+    kakao.maps.event.removeListener(map, 'mousemove', moveDrawing);
+    kakao.maps.event.removeListener(map, 'click', finishDrawing);
+    
+    // 현재 그리고 있던 미완성 원이 있다면 제거
+    if (drawingCircle) drawingCircle.setMap(null);
+    if (distanceOverlay) distanceOverlay.setMap(null);
+    
+    centerLatLng = null;
+    drawingCircle = null;
+    distanceOverlay = null;
+}
+
+function startDrawing(mouseEvent) {
+    if (!isRadiusMode) return;
+    
+    centerLatLng = mouseEvent.latLng;
+    drawingCircle = new kakao.maps.Circle({
+        center: centerLatLng,
+        radius: 0,
+        strokeWeight: 2,
+        strokeColor: '#f39c12',
+        strokeOpacity: 0.8,
+        fillColor: '#f39c12',
+        fillOpacity: 0.3
+    });
+    drawingCircle.setMap(map);
+
+    distanceOverlay = new kakao.maps.CustomOverlay({
+        position: centerLatLng,
+        content: '<div class="radius-info">반경: 0m</div>',
+        yAnchor: 1.5
+    });
+    distanceOverlay.setMap(map);
+
+    kakao.maps.event.removeListener(map, 'click', startDrawing);
+    kakao.maps.event.addListener(map, 'mousemove', moveDrawing);
+    kakao.maps.event.addListener(map, 'click', finishDrawing);
+}
+
+function moveDrawing(mouseEvent) {
+    if (!centerLatLng || !drawingCircle) return;
+
+    const moveLatLng = mouseEvent.latLng;
+    
+    // [수정] 폴리라인 객체를 생성하여 실제 지도의 거리를 가져옵니다.
+    // 카카오맵 API는 좌표간의 실제 거리를 Polyline의 getLength()로 가장 정확하게 계산합니다.
+    const line = new kakao.maps.Polyline({
+        path: [centerLatLng, moveLatLng]
+    });
+
+    const distance = Math.round(line.getLength()); // 미터(m) 단위로 반환
+
+    // 원의 반지름을 실시간으로 업데이트
+    drawingCircle.setRadius(distance);
+    
+    // 오버레이 위치와 텍스트 업데이트
+    distanceOverlay.setPosition(moveLatLng);
+    distanceOverlay.setContent(`<div class="radius-info">반경: ${distance.toLocaleString()}m</div>`);
+}
+
+function finishDrawing(mouseEvent) {
+    // 1. 기존 이벤트 해제
+    kakao.maps.event.removeListener(map, 'mousemove', moveDrawing);
+    kakao.maps.event.removeListener(map, 'click', finishDrawing);
+
+    const finalCircle = drawingCircle;
+    const finalOverlay = distanceOverlay;
+    const finalDistance = Math.round(finalCircle.getRadius());
+    const endLatLng = mouseEvent.latLng;
+
+    // 2. HTML 요소를 직접 생성 (중요: 문자열 방식보다 이벤트 제어가 확실함)
+    const content = document.createElement('div');
+    content.className = 'radius-info-final';
+    
+    // 텍스트 추가
+    const textSpan = document.createElement('span');
+    textSpan.innerText = `반경: ${finalDistance}m`;
+    content.appendChild(textSpan);
+
+    // [X] 버튼 추가
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'radius-close-btn';
+    closeBtn.innerText = '×';
+    
+    // 3. 버튼 클릭 시 지도 클릭으로 번지지 않게 차단 (핵심)
+    closeBtn.onclick = function(e) {
+        // 이 버튼을 눌렀을 때 지도가 클릭된 것으로 인식하지 못하게 함
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.cancelBubble !== undefined) e.cancelBubble = true; 
+        
+        finalCircle.setMap(null);
+        finalOverlay.setMap(null);
+    };
+
+    content.appendChild(closeBtn);
+
+    // 4. 오버레이 설정 업데이트
+    finalOverlay.setContent(content);
+    finalOverlay.setPosition(endLatLng);
+    // 오버레이가 클릭 이벤트를 가로챌 수 있도록 설정 (지도까지 안 내려가게 함)
+    finalOverlay.setZIndex(3); 
+
+    // 5. 상태 초기화 및 다음 측정을 위한 클릭 이벤트 재등록
+    drawingCircle = null;
+    distanceOverlay = null;
+    centerLatLng = null;
+
+    // 약간의 시간차를 두어 현재 클릭이 다음 측정 시작으로 바로 이어지지 않게 방어
+    setTimeout(() => {
+        if (isRadiusMode) {
+            kakao.maps.event.addListener(map, 'click', startDrawing);
+        }
+    }, 1000);
 }
     loadData();
 </script>
